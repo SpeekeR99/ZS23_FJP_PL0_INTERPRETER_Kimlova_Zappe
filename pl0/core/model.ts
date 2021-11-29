@@ -5,6 +5,9 @@ export interface DataModel {
 
     stack: Stack;
     heap: Heap;
+
+    input: string;
+    output: string;
 }
 
 export interface Stack {
@@ -53,8 +56,8 @@ export interface InstructionStepParameters {
 export interface InstructionStepResult {
     isEnd: boolean;
 
-    wasInputUsed: boolean;
     output: string;
 
     warnings: string[];
+    inputNextStep: string;
 }

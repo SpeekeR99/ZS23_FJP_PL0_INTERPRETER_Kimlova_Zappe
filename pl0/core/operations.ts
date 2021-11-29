@@ -11,6 +11,9 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
         base: 0,
         sp: 0,
 
+        input: '',
+        output: '',
+
         stack: {
             maxSize: stackMaxSize,
             stackItems: [],
@@ -31,7 +34,7 @@ export function NextStep(pars: InstructionStepParameters): InstructionStepResult
 
     return {
         isEnd: false,
-        wasInputUsed: false,
+        inputNextStep: pars.input,
         output: '',
         warnings: [],
     };
