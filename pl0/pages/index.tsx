@@ -4,12 +4,11 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import * as core from '../core/index';
 import { useState } from 'react';
-import { DataModel } from '../core/model';
+import { DataModel, InstructionStepParameters } from '../core/model';
+import { InitModel } from '../core/operations';
 
 const Home: NextPage = () => {
-    const [model, setModel] = useState<DataModel>({
-        pc: 0,
-    });
+    const [model, setModel] = useState<DataModel | null>(null);
     const [models, setModels] = useState<DataModel[]>([]);
 
     return (
@@ -26,28 +25,56 @@ const Home: NextPage = () => {
             <main className={styles.main}>
                 <h1 className={styles.title}></h1>
 
-                <p className={styles.description}>
-                    PC: {model.pc} <br />
-                </p>
+                {model == null && (
+                    <>
+                        <p>Simulace PL/0 nebyla zahájena</p>{' '}
+                        <button
+                            onClick={() => {
+                                const m = InitModel(1024 * 512, 5000);
+                                models.push(JSON.parse(JSON.stringify(m)));
+                                setModel({ ...m });
+                            }}
+                        >
+                            Zahájit
+                        </button>
+                    </>
+                )}
+                {model && (
+                    <>
+                        <p className={styles.description}>
+                            PC: {model.pc} <br />
+                        </p>
 
-                <button
-                    onClick={() => {
-                        models.push(JSON.parse(JSON.stringify(model)));
-                        core.Operations.IncreasePC(model);
-                        setModel({ ...model });
-                    }}
-                >
-                    forward
-                </button>
-                <button
-                    disabled={models.length < 1}
-                    onClick={() => {
-                        setModel(models[models.length - 1]);
-                        models.pop();
-                    }}
-                >
-                    back
-                </button>
+                        <button
+                            onClick={() => {
+                                models.push(JSON.parse(JSON.stringify(model)));
+                                try {
+                                    const pars: InstructionStepParameters = {
+                                        model,
+                                        instructions: [],
+                                        input: '',
+                                    };
+                                    const result = core.Operations.NextStep(pars);
+                                } catch (e) {
+                                    alert((e as Error).message);
+                                }
+
+                                setModel({ ...model });
+                            }}
+                        >
+                            next step -&gt;
+                        </button>
+                        <button
+                            disabled={models.length < 1}
+                            onClick={() => {
+                                setModel(models[models.length - 1]);
+                                models.pop();
+                            }}
+                        >
+                            back -&lt;
+                        </button>
+                    </>
+                )}
             </main>
 
             <footer className={styles.footer}>
