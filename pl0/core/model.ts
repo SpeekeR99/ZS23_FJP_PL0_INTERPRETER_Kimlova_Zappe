@@ -205,7 +205,7 @@ function FindBase(stack: Stack, base: number, level: number): number {
 
 // ------------------------------------------- INSTRUCTION FUNCTIONS
 
-export function DoStep(params: InstructionStepParameters) {
+export function DoStep(params: InstructionStepParameters): InstructionStepResult {
     let instruction = params.instructions[params.model.pc];
     let op = instruction.instruction;
     let level = instruction.level;
@@ -213,6 +213,11 @@ export function DoStep(params: InstructionStepParameters) {
 
     let heap = params.model.heap;
     let stack = params.model.stack;
+
+    let inputString = params.input;
+    let warnings: string[] = [];
+    let isEnd = false;
+    let outputString = '';
 
     switch (op) {
         case InstructionType.LIT:
@@ -281,12 +286,18 @@ export function DoStep(params: InstructionStepParameters) {
             params.model.pc = parameter;
             break;
         case InstructionType.RET:
+            if (params.model.base == 0) {
+                isEnd = true;
+                break;
+            }
+
             var res: number[] = GetValuesFromStack(
                 params.model.stack,
                 params.model.base + 2,
                 2,
                 false
             );
+
             params.model.sp = params.model.base - 1;
             params.model.pc = res[0];
             params.model.base = res[1];
@@ -300,16 +311,42 @@ export function DoStep(params: InstructionStepParameters) {
                 params.model.sp,
                 ConvertToStackItems(stack.stackItems[address].value)
             );
+            params.model.pc++;
             break;
         case InstructionType.STO:
             var base = FindBase(stack, params.model.base, level);
             var address = base + parameter;
             var res = GetValuesFromStack(stack, params.model.sp, 1);
             stack.stackItems[address].value = res[0];
+            params.model.pc++;
+            break;
+        case InstructionType.WRI:
+            var code = GetValuesFromStack(stack, params.model.sp, 1);
+            outputString = String.fromCharCode(code[0]);
+            params.model.pc++;
+            break;
+        case InstructionType.REA:
+            if (inputString.length == 0) {
+                throw new Error('Není co přečíst ze vstupu');
+            }
+
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(inputString.charCodeAt(0))
+            );
+            inputString = inputString.slice(1);
             break;
         default:
             throw new Error('Neznámá instrukce ' + InstructionType[op]);
     }
+
+    return {
+        warnings: warnings,
+        isEnd: isEnd,
+        output: outputString,
+        inputNextStep: inputString,
+    };
 }
 
 function PerformINT(stack: Stack, sp: number, count: number) {
