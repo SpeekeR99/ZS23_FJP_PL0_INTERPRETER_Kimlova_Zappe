@@ -16,6 +16,7 @@ const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
     const [models, setModels] = useState<DataModel[]>([]);
 
+    const [version, setVersion] = useState<number>(0);
     const [instructions, setInstructions] = useState<Instruction[]>([]);
     const [inputTxt, setInputTxt] = useState<string>('');
 
@@ -77,7 +78,8 @@ const Home: NextPage = () => {
                                     alert((e as Error).message);
                                 }
 
-                                setModel({ ...model });
+                                //setModel({ ...model });
+                                setVersion(version + 1);
                             }}
                         >
                             next step -&gt;
