@@ -4,7 +4,12 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import * as core from '../core/index';
 import { useState } from 'react';
-import { DataModel, Instruction, InstructionStepParameters } from '../core/model';
+import {
+    DataModel,
+    Instruction,
+    InstructionStepParameters,
+    InstructionType,
+} from '../core/model';
 import { InitModel } from '../core/operations';
 
 const Home: NextPage = () => {
@@ -54,7 +59,14 @@ const Home: NextPage = () => {
 
                                     const pars: InstructionStepParameters = {
                                         model,
-                                        instructions: [],
+                                        instructions: [
+                                            {
+                                                index: 0,
+                                                instruction: InstructionType.LIT,
+                                                level: 0,
+                                                parameter: 9,
+                                            },
+                                        ],
                                         input: '',
                                     };
 
