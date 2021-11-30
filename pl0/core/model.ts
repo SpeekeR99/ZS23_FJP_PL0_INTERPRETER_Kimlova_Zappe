@@ -1,3 +1,5 @@
+// ------------------------------------------- INTERFACES
+
 export interface DataModel {
     pc: number;
     base: number;
@@ -96,27 +98,9 @@ export interface InstructionStepResult {
     inputNextStep: string;
 }
 
-export function DoStep(params: InstructionStepParameters) {
-    let instruction = params.instructions[params.model.pc];
-    let op = instruction.instruction;
-    let level = instruction.level;
-    let parameter = instruction.parameter;
+// ------------------------------------------- INTERFACES
 
-    switch (op) {
-        case InstructionType.LIT:
-            params.model.sp = PushOntoStack(
-                params.model.stack,
-                params.model.sp,
-                ConvertToStackItems(parameter)
-            );
-            break;
-        case InstructionType.OPR:
-            params.model.sp = PerformOPR(params.model.stack, parameter, params.model.sp);
-            break;
-        default:
-            throw new Error('Unknown instruction ' + InstructionType[op]);
-    }
-}
+// ------------------------------------------- UTILITY FUNCTIONS
 
 function GetValuesFromStack(
     stack: Stack,
@@ -148,11 +132,19 @@ function ConvertToStackItems(...values: number[]) {
 // Pushes StackItems onto stack
 // Check if the stack if large enough and expands it if needed
 // Returns new stack pointer
-function PushOntoStack(stack: Stack, sp: number, values: StackItem[]): number {
+function PushOntoStack(
+    stack: Stack,
+    sp: number,
+    values: StackItem[],
+    increment: boolean = true
+): number {
     let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
     for (let i = 0; i < values.length; i++) {
-        sp++;
-        currentStackFrame.size++;
+        if (increment) {
+            sp++;
+            currentStackFrame.size++;
+        }
+
         if (sp > stack.stackItems.length - 1) {
             stack.stackItems.push({ value: 0 });
         }
@@ -190,6 +182,155 @@ function CheckSPInBounds(sp: number) {
 function ChangeCurrentStackFrameSize(stack: Stack, count: number) {
     let currentSF: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
     currentSF.size += count;
+}
+
+function FindBase(stack: Stack, base: number, level: number): number {
+    let newBase = base;
+    while (level > 0) {
+        newBase = stack.stackItems[base].value;
+        level--;
+
+        if (newBase == 0 && level != 0) {
+            throw new Error(
+                'Hledání statické báze došlo do prvního rámce a level není 0 (level je ' +
+                    level +
+                    ')'
+            );
+        }
+    }
+    return newBase;
+}
+
+// ------------------------------------------- UTILITY FUNCTIONS
+
+// ------------------------------------------- INSTRUCTION FUNCTIONS
+
+export function DoStep(params: InstructionStepParameters) {
+    let instruction = params.instructions[params.model.pc];
+    let op = instruction.instruction;
+    let level = instruction.level;
+    let parameter = instruction.parameter;
+
+    let heap = params.model.heap;
+    let stack = params.model.stack;
+
+    switch (op) {
+        case InstructionType.LIT:
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(parameter)
+            );
+            params.model.pc++;
+            break;
+        case InstructionType.OPR:
+            params.model.sp = PerformOPR(stack, parameter, params.model.sp);
+            params.model.pc++;
+            break;
+        case InstructionType.INT:
+            params.model.sp = PerformINT(stack, params.model.sp, parameter);
+            params.model.pc++;
+            break;
+        case InstructionType.JMP:
+            if (parameter >= params.instructions.length) {
+                throw new Error('Instrukce na indexu ' + parameter + ' je mimo rozsah');
+            }
+            params.model.pc = parameter;
+            break;
+        case InstructionType.JMC:
+            var operands = GetValuesFromStack(stack, params.model.sp, 1);
+            if (operands[0] == 1) {
+                if (parameter >= params.instructions.length) {
+                    throw new Error(
+                        'Instrukce na indexu ' + parameter + ' je mimo rozsah'
+                    );
+                }
+                params.model.pc = parameter;
+            } else {
+                params.model.pc++;
+            }
+            break;
+        case InstructionType.CAL:
+            let newBase = FindBase(stack, params.model.base, level);
+            PushOntoStack(
+                stack,
+                params.model.sp + 1,
+                ConvertToStackItems(newBase),
+                false
+            );
+            PushOntoStack(
+                stack,
+                params.model.sp + 2,
+                ConvertToStackItems(params.model.base),
+                false
+            );
+            PushOntoStack(
+                stack,
+                params.model.sp + 3,
+                ConvertToStackItems(params.model.pc),
+                false
+            );
+
+            if (parameter >= params.instructions.length) {
+                throw new Error('Instrukce na indexu ' + parameter + ' je mimo rozsah');
+            }
+
+            stack.stackFrames.push({ index: params.model.sp + 1, size: 0 });
+
+            params.model.base = params.model.sp + 1;
+            params.model.pc = parameter;
+            break;
+        case InstructionType.RET:
+            var res: number[] = GetValuesFromStack(
+                params.model.stack,
+                params.model.base + 2,
+                2,
+                false
+            );
+            params.model.sp = params.model.base - 1;
+            params.model.pc = res[0];
+            params.model.base = res[1];
+            params.model.stack.stackFrames.pop();
+            break;
+        case InstructionType.LOD:
+            var base = FindBase(stack, params.model.base, level);
+            var address = base + parameter;
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(stack.stackItems[address].value)
+            );
+            break;
+        case InstructionType.STO:
+            var base = FindBase(stack, params.model.base, level);
+            var address = base + parameter;
+            var res = GetValuesFromStack(stack, params.model.sp, 1);
+            stack.stackItems[address].value = res[0];
+            break;
+        default:
+            throw new Error('Neznámá instrukce ' + InstructionType[op]);
+    }
+}
+
+function PerformINT(stack: Stack, sp: number, count: number) {
+    let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
+    for (let i = 0; i < count; i++) {
+        sp++;
+        currentStackFrame.size++;
+        if (sp > stack.stackItems.length - 1) {
+            stack.stackItems.push({ value: 0 });
+        }
+    }
+
+    if (!CheckStackSize(stack)) {
+        throw new Error(
+            'Velikost zásobníku přesáhla maximální povolenou hodnotu (' +
+                stack.maxSize +
+                ')'
+        );
+    }
+
+    return sp;
 }
 
 function PerformOPR(stack: Stack, operation: number, sp: number): number {
@@ -292,8 +433,10 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             );
             break;
         default:
-            throw new Error('Unknown OPR operation ' + OperationType[e_op]);
+            throw new Error('Neznámá OPR operace ' + OperationType[e_op]);
     }
 
     return sp;
 }
+
+// ------------------------------------------- INSTRUCTION FUNCTIONS
