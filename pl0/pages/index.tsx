@@ -17,7 +17,14 @@ const Home: NextPage = () => {
     const [models, setModels] = useState<DataModel[]>([]);
 
     const [version, setVersion] = useState<number>(0);
-    const [instructions, setInstructions] = useState<Instruction[]>([]);
+    const [instructions, setInstructions] = useState<Instruction[]>([
+        {
+            index: 0,
+            instruction: InstructionType.LIT,
+            level: 0,
+            parameter: 9,
+        },
+    ]);
     const [inputTxt, setInputTxt] = useState<string>('');
 
     return (
@@ -60,14 +67,7 @@ const Home: NextPage = () => {
 
                                     const pars: InstructionStepParameters = {
                                         model,
-                                        instructions: [
-                                            {
-                                                index: 0,
-                                                instruction: InstructionType.LIT,
-                                                level: 0,
-                                                parameter: 9,
-                                            },
-                                        ],
+                                        instructions,
                                         input: '',
                                     };
 

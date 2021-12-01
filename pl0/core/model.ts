@@ -204,6 +204,7 @@ function FreeHeapBlock(heap: Heap, address: number) {
         }
     }
 
+    // do warning, not fatal
     throw new Error('Na adrese ' + address + ' nezačíná žádný alokovaný blok paměti');
 }
 
