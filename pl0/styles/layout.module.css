@@ -2,7 +2,7 @@
     display: grid;
 
     grid:
-        [header-start] 'header header header header' 80px [header-end]
+        [header-start] 'header header header header' 60px [header-end]
         [main-start] 'instructions stack heap io' 1fr [main-end]
         [footer-start] 'footer footer footer footer' 40px [footer-end]
         / minmax(300px, 2fr) 1fr 2fr 2fr;
@@ -18,7 +18,7 @@
 
 .header {
     grid-area: header;
-    background-color: gray;
+    background-color: rgb(59, 59, 59);
 
     align-items: center;
     justify-content: center;
@@ -26,7 +26,7 @@
 }
 .footer {
     grid-area: footer;
-    background-color: dimgray;
+    background-color: rgb(59, 59, 59);
 }
 .instructions {
     grid-area: instructions;
