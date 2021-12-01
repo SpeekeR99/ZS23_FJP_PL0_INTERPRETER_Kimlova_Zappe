@@ -1,5 +1,7 @@
 // ------------------------------------------- INTERFACES
 
+import { BlockList } from 'net';
+
 export interface DataModel {
     pc: number;
     base: number;
@@ -100,7 +102,157 @@ export interface InstructionStepResult {
 
 // ------------------------------------------- INTERFACES
 
-// ------------------------------------------- UTILITY FUNCTIONS
+// ------------------------------------------- HEAP UTILITY FUNCTIONS
+
+function CreateArray(size: number, value: number = 0): number[] {
+    let arr: number[] = [];
+    for (let i = 0; i < size; i++) {
+        arr.push(value);
+    }
+
+    return arr;
+}
+
+function AllocateBlockFirstFit(heap: Heap, count: number): number {
+    for (let i = 0; i < heap.blocks.length; i++) {
+        if (!heap.blocks[i].empty) {
+            continue;
+        }
+
+        if (heap.blocks[i].size > count) {
+            let blocksAfter = heap.blocks.slice(i + 1);
+            let blocksBefore = heap.blocks.slice(0, i);
+            let fullBlock: HeapBlock = {
+                empty: false,
+                index: heap.blocks[i].index,
+                size: count,
+                values: CreateArray(count),
+            };
+            let emptyBlock: HeapBlock = {
+                empty: true,
+                index: heap.blocks[i].index + count,
+                size: heap.blocks[i].size - count,
+                values: CreateArray(heap.blocks[i].size - count),
+            };
+            blocksBefore.push(fullBlock);
+            blocksBefore.push(emptyBlock);
+            heap.blocks = blocksBefore.concat(blocksAfter);
+
+            return fullBlock.index;
+        } else if (heap.blocks[i].size == count) {
+            // Trivial case - the first block is the exact size needed
+            heap.blocks[i].empty = false;
+            return heap.blocks[i].index;
+        }
+    }
+
+    // No empty space found
+    return -1;
+}
+
+function FreeHeapBlock(heap: Heap, address: number) {
+    // Find the address
+    for (let i = 0; i < heap.blocks.length; i++) {
+        if (heap.blocks[i].index == address && heap.blocks[i].empty) {
+            // The block to deallocate
+            let targetBlock = heap.blocks[i];
+            targetBlock.empty = true;
+
+            let leftBlocks;
+            let rightBlocks;
+
+            // See if the block on the left is empty - if yes, merge it
+            if (i != 0 && heap.blocks[i - 1].empty) {
+                let leftBlock = heap.blocks[i - 1];
+                leftBlocks = heap.blocks.slice(0, i);
+                leftBlocks.pop();
+                targetBlock.size += leftBlock.size;
+                targetBlock.index = leftBlock.index;
+            }
+
+            // Do the same for right
+            if (i != heap.blocks.length - 1 && heap.blocks[i + 1].empty) {
+                let rightBlock = heap.blocks[i + 1];
+                rightBlocks = heap.blocks.slice(i + 1);
+                rightBlocks = rightBlocks.reverse();
+                rightBlocks.pop();
+                rightBlocks = rightBlocks.reverse();
+                targetBlock.size += rightBlock.size;
+            }
+
+            let resultBlocks: HeapBlock[] = [];
+
+            // If the target was not the first block, push it on the left side
+            if (i != 0 && heap.blocks[i - 1].empty && leftBlocks != undefined) {
+                leftBlocks.push(targetBlock);
+                resultBlocks = resultBlocks.concat(leftBlocks);
+            } else {
+                // Otherwise set it as the first block
+                resultBlocks.push(targetBlock);
+            }
+
+            // If the target block was not the last block, add the right side to the result
+            if (
+                i != heap.blocks.length - 1 &&
+                heap.blocks[i + 1].empty &&
+                rightBlocks != undefined
+            ) {
+                resultBlocks = resultBlocks.concat(rightBlocks);
+            }
+
+            heap.blocks = resultBlocks;
+        }
+    }
+
+    throw new Error('Na adrese ' + address + ' nezačíná žádný alokovaný blok paměti');
+}
+
+function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
+    for (let i = 0; i < heap.blocks.length; i++) {
+        let heapBlock = heap.blocks[i];
+        if (heapBlock.index <= address && heapBlock.index + heapBlock.size - 1) {
+            return heapBlock;
+        }
+    }
+
+    return { size: 0, values: [], empty: true, index: -1 };
+}
+
+function PutValueOnHeap(heap: Heap, address: number, value: number) {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (heapBlock.index == -1) {
+        throw new Error(
+            'Přístup do paměti na nedefinovaném indexu ' +
+                address +
+                ', velikost paměti = ' +
+                heap.size
+        );
+    } else if (heapBlock.empty) {
+        throw new Error('Přístup do nealokované paměti indexem ' + address);
+    } else {
+        heapBlock.values[address - heapBlock.index] = value;
+    }
+}
+
+function GetValueFromHeap(heap: Heap, address: number): number {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (heapBlock.index == -1) {
+        throw new Error(
+            'Přístup do paměti na nedefinovaném indexu ' +
+                address +
+                ', velikost paměti = ' +
+                heap.size
+        );
+    } else if (heapBlock.empty) {
+        throw new Error('Přístup do nealokované paměti indexem ' + address);
+    } else {
+        return heapBlock.values[address - heapBlock.index];
+    }
+}
+
+// ------------------------------------------- HEAP UTILITY FUNCTIONS
+
+// ------------------------------------------- STACK UTILITY FUNCTIONS
 
 function GetValuesFromStack(
     stack: Stack,
@@ -201,7 +353,7 @@ function FindBase(stack: Stack, base: number, level: number): number {
     return newBase;
 }
 
-// ------------------------------------------- UTILITY FUNCTIONS
+// ------------------------------------------- STACK UTILITY FUNCTIONS
 
 // ------------------------------------------- INSTRUCTION FUNCTIONS
 
@@ -244,6 +396,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         case InstructionType.JMC:
             var operands = GetValuesFromStack(stack, params.model.sp, 1);
+            params.model.sp--;
             if (operands[0] == 1) {
                 if (parameter >= params.instructions.length) {
                     throw new Error(
@@ -318,11 +471,13 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var address = base + parameter;
             var res = GetValuesFromStack(stack, params.model.sp, 1);
             stack.stackItems[address].value = res[0];
+            params.model.sp--;
             params.model.pc++;
             break;
         case InstructionType.WRI:
             var code = GetValuesFromStack(stack, params.model.sp, 1);
             outputString = String.fromCharCode(code[0]);
+            params.model.sp--;
             params.model.pc++;
             break;
         case InstructionType.REA:
@@ -336,6 +491,22 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 ConvertToStackItems(inputString.charCodeAt(0))
             );
             inputString = inputString.slice(1);
+            params.model.pc++;
+            break;
+        case InstructionType.NEW:
+            var count = GetValuesFromStack(stack, params.model.sp, 1);
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(AllocateBlockFirstFit(heap, count[0]))
+            );
+            params.model.pc++;
+            break;
+        case InstructionType.DEL:
+            var addr = GetValuesFromStack(stack, params.model.sp, 1);
+            params.model.sp--;
+            params.model.pc++;
+            FreeHeapBlock(heap, addr[0]);
             break;
         default:
             throw new Error('Neznámá instrukce ' + InstructionType[op]);
