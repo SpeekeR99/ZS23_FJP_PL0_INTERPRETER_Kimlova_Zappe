@@ -1,0 +1,46 @@
+.layoutwrapper {
+    display: grid;
+
+    grid:
+        [header-start] 'header header header header' 80px [header-end]
+        [main-start] 'instructions stack heap io' 1fr [main-end]
+        [footer-start] 'footer footer footer footer' 40px [footer-end]
+        / minmax(300px, 2fr) 1fr 2fr 2fr;
+
+    place-items: stretch;
+    place-content: stretch;
+
+    width: 100vw;
+    height: 100vh;
+
+    gap: 10px;
+}
+
+.header {
+    grid-area: header;
+    background-color: gray;
+
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+.footer {
+    grid-area: footer;
+    background-color: dimgray;
+}
+.instructions {
+    grid-area: instructions;
+    background-color: blue;
+}
+.stack {
+    grid-area: stack;
+    background-color: green;
+}
+.heap {
+    grid-area: heap;
+    background-color: orange;
+}
+.io {
+    grid-area: io;
+    background-color: yellow;
+}
