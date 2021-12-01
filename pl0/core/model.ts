@@ -495,6 +495,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         case InstructionType.NEW:
             var count = GetValuesFromStack(stack, params.model.sp, 1);
+            params.model.sp--;
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
@@ -507,6 +508,40 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.sp--;
             params.model.pc++;
             FreeHeapBlock(heap, addr[0]);
+            break;
+        case InstructionType.LDA:
+            var addr: number[] = GetValuesFromStack(stack, params.model.sp, 1);
+            params.model.sp--;
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(GetValueFromHeap(heap, addr[0]))
+            );
+            params.model.pc++;
+            break;
+        case InstructionType.STA:
+            var addr: number[] = GetValuesFromStack(stack, params.model.sp, 2);
+            params.model.sp -= 2;
+            PutValueOnHeap(heap, addr[1], addr[0]);
+            params.model.pc++;
+            break;
+        case InstructionType.PLD:
+            var values: number[] = GetValuesFromStack(stack, params.model.sp, 2);
+            params.model.sp -= 2;
+            var base = FindBase(stack, params.model.base, values[1]);
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(stack.stackItems[base + values[0]].value)
+            );
+            params.model.pc++;
+            break;
+        case InstructionType.PST:
+            var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
+            params.model.sp -= 3;
+            var base = FindBase(stack, params.model.base, values[1]);
+            stack.stackItems[base + values[0]].value = values[2];
+            params.model.pc++;
             break;
         default:
             throw new Error('Neznámá instrukce ' + InstructionType[op]);
