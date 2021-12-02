@@ -109,7 +109,6 @@ const Home: NextPage = () => {
                 />
             </div>
             <div className={styles.stack}>
-                Stack:
                 <Stack sp={model?.sp} stack={model?.stack} />
             </div>
             <div className={styles.heap}>heap</div>

@@ -1,5 +1,6 @@
 import { Stack, StackFrame, StackItem } from './model';
 export interface UIStackFrame {
+    startIndex: number;
     isStackFrame: boolean;
     values: StackItem[];
     color: string;
@@ -38,6 +39,7 @@ export function TransformStackFrames(stack: Stack) {
                 isStackFrame: realsf != null,
                 values: [],
                 color: sfColors[++lastSFColor % sfColors.length],
+                startIndex: i,
             });
         }
 

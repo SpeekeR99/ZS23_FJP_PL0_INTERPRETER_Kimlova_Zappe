@@ -32,6 +32,10 @@ export function StackFrameView(props: StackFrameViewProps) {
                         minWidth: '100%',
                         display: 'flex',
                         flexDirection: 'row',
+
+                        borderBottomColor: 'yellow',
+                        borderBottomStyle: 'dotted',
+                        borderBottomWidth: props.firstIndex + key === props.sp ? 3 : 0,
                     }}
                     key={key}
                     className={styles.stackFrameItem}
