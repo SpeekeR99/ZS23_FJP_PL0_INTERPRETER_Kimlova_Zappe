@@ -33,9 +33,9 @@ export function NextStep(pars: InstructionStepParameters): InstructionStepResult
     //pars.model.pc++;
     var res = DoStep(pars);
     return {
-        isEnd: false,
-        inputNextStep: pars.input,
-        output: '',
-        warnings: [],
+        isEnd: res.isEnd,
+        inputNextStep: res.inputNextStep,
+        output: res.output,
+        warnings: res.warnings,
     };
 }
