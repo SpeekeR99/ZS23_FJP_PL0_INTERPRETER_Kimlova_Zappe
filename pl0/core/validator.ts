@@ -1,6 +1,7 @@
 import { Instruction, InstructionType } from './model';
 
 export interface ValidationResult {
+    emptyInput: boolean;
     parseOK: boolean;
     validationOK: boolean;
     instructions: Instruction[];
@@ -55,6 +56,17 @@ export let instructionStringMap = new Map<InstructionType, string>([
 
 export function ParseAndValidate(input: string): ValidationResult {
     let lines = input.split(/\r?\n/);
+
+    if (lines.length == 1 && lines[0] == '') {
+        return {
+            emptyInput: true,
+            validationOK: false,
+            parseOK: false,
+            parseErrors: [],
+            validationErrors: [],
+            instructions: [],
+        };
+    }
 
     let parseOK = true;
     let validationOK = true;
@@ -281,6 +293,9 @@ export function ParseAndValidate(input: string): ValidationResult {
     if (!parseOK) {
         instructions = [];
     }
+
+    console.log(parseErrors);
+    console.log(validationErrors);
 
     return {
         parseOK: parseOK,
