@@ -4,6 +4,7 @@ import { Instruction } from '../../core/model';
 import { ParseAndValidate, PreprocessingError } from '../../core/validator';
 import { ShowToast } from '../../utils/alerts';
 import { OKView } from '../general/OKView';
+import styles from '../../styles/instructions.module.css';
 
 type InstructionsLoaderProps = {
     instructionsLoaded: (
@@ -139,6 +140,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                             rows={15}
                             value={textInstructions}
                             onChange={onChange}
+                            className={styles.instructionsTextField}
                         />
 
                         <div>

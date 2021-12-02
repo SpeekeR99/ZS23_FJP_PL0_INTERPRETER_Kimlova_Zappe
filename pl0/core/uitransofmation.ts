@@ -31,6 +31,7 @@ export function TransformStackFrames(stack: Stack) {
 
         const realsf = GetRealStackFrame(stack.stackFrames, i);
 
+        // @ts-ignore
         if (first === true || realsf?.index !== lastRealSF?.index) {
             first = false;
             lastRealSF = realsf;

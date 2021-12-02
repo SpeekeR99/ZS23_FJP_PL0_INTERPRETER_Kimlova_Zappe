@@ -9,15 +9,15 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
     const m: DataModel = {
         pc: 0,
         base: 0,
-        sp: 2,
+        sp: -1,
 
         input: '',
         output: '',
 
         stack: {
             maxSize: stackMaxSize,
-            stackItems: [{ value: 0 }, { value: 3 }, { value: 2 }],
-            stackFrames: [{ index: 0, size: 3 }],
+            stackItems: [],
+            stackFrames: [{ index: 0, size: 0 }],
         },
 
         heap: {
