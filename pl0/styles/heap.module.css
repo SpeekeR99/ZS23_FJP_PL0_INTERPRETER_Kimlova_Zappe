@@ -1,0 +1,13 @@
+.heapCell {
+    min-width: 30px;
+    width: calc(20% - 6px);
+    margin: 1px;
+    padding: 3px;
+}
+
+.heapCellEmpty {
+    background-color: green;
+}
+.heapCellFull {
+    background-color: red;
+}

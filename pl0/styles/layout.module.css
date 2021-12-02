@@ -38,7 +38,7 @@
 }
 .heap {
     grid-area: heap;
-    background-color: orange;
+    overflow-y: auto;
 }
 .io {
     grid-area: io;

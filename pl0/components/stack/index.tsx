@@ -16,9 +16,8 @@ export function Stack(props: StackProps) {
 
     return (
         <div style={{ maxHeight: '100%' }}>
-            Stack: SP:
-            <br />
-            {props.sp}
+            Stack: <br />
+            SP: {props.sp}
             {TransformStackFrames(props.stack).map((sf, index) => (
                 <StackFrameView
                     firstIndex={sf.startIndex}

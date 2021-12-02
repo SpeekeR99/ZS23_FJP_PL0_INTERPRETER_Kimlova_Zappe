@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/layout.module.css';
 import * as core from '../core/index';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
     DataModel,
     Instruction,
@@ -15,6 +15,7 @@ import { Instructions } from '../components/instructions';
 import { PreprocessingError } from '../core/validator';
 import { Stack } from '../components/stack';
 import { Button } from 'react-bootstrap';
+import { Heap } from '../components/heap';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -111,7 +112,9 @@ const Home: NextPage = () => {
             <div className={styles.stack}>
                 <Stack sp={model?.sp} stack={model?.stack} />
             </div>
-            <div className={styles.heap}>heap</div>
+            <div className={styles.heap}>
+                <Heap heap={model?.heap} />
+            </div>
             <div className={styles.io}>io</div>
             <div className={styles.footer}>footer</div>
         </main>
