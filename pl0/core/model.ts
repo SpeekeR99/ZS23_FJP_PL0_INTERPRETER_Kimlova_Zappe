@@ -395,7 +395,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
         case InstructionType.JMC:
             var operands = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
-            if (operands[0] == 1) {
+            if (operands[0] == 0) {
                 if (parameter >= params.instructions.length) {
                     throw new Error(
                         'Instrukce na indexu ' + parameter + ' je mimo rozsah'
@@ -543,6 +543,10 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         default:
             throw new Error('Neznámá instrukce ' + InstructionType[op]);
+    }
+
+    if (params.model.pc >= params.instructions.length) {
+        isEnd = true;
     }
 
     return {
