@@ -30,10 +30,11 @@
 }
 .instructions {
     grid-area: instructions;
+    overflow-y: auto;
 }
 .stack {
     grid-area: stack;
-    background-color: green;
+    overflow-y: auto;
 }
 .heap {
     grid-area: heap;
