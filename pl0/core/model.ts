@@ -337,7 +337,7 @@ function ChangeCurrentStackFrameSize(stack: Stack, count: number) {
 function FindBase(stack: Stack, base: number, level: number): number {
     let newBase = base;
     while (level > 0) {
-        newBase = stack.stackItems[base].value;
+        newBase = stack.stackItems[newBase].value;
         level--;
 
         if (newBase == 0 && level != 0) {
@@ -423,7 +423,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             PushOntoStack(
                 stack,
                 params.model.sp + 3,
-                ConvertToStackItems(params.model.pc),
+                ConvertToStackItems(params.model.pc + 1),
                 false
             );
 
