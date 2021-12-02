@@ -301,6 +301,7 @@ export function ParseAndValidate(input: string): ValidationResult {
     console.log(validationErrors);
 
     return {
+        emptyInput: false,
         parseOK: parseOK,
         validationOK: validationOK,
         validationErrors: validationErrors,
