@@ -63,7 +63,7 @@ export function ParseAndValidate(input: string): ValidationResult {
     let parseErrors: PreprocessingError[] = [];
 
     for (let i = 0; i < lines.length; i++) {
-        let splitLine = lines[i].split(/(\s+)/);
+        let splitLine = lines[i].split(/\s+/);
 
         if (splitLine.length < 4) {
             parseOK = false;
