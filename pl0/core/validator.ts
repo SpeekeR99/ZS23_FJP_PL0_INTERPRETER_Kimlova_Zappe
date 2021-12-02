@@ -75,7 +75,7 @@ export function ParseAndValidate(input: string): ValidationResult {
     let parseErrors: PreprocessingError[] = [];
 
     for (let i = 0; i < lines.length; i++) {
-        let splitLine = lines[i].split(/\s+/);
+        let splitLine = lines[i].trim().split(/\s+/);
 
         if (splitLine.length < 4) {
             parseOK = false;
@@ -94,19 +94,19 @@ export function ParseAndValidate(input: string): ValidationResult {
         }
 
         let index = Number(splitLine[0]);
-        if (index == NaN) {
+        if (Number.isNaN(index)) {
             parseOK = false;
             parseErrors.push({ rowIndex: i, error: 'Index musí být celé číslo' });
             continue;
         }
         let level = Number(splitLine[2]);
-        if (level == NaN) {
+        if (Number.isNaN(level)) {
             parseOK = false;
             parseErrors.push({ rowIndex: i, error: 'Level (L) musí být celé číslo' });
             continue;
         }
         let parameter = Number(splitLine[3]);
-        if (parameter == NaN) {
+        if (Number.isNaN(parameter)) {
             parseOK = false;
             parseErrors.push({ rowIndex: i, error: 'Parametr (A) musí být celé číslo' });
             continue;
@@ -166,7 +166,10 @@ export function ParseAndValidate(input: string): ValidationResult {
                 });
                 continue;
             }
-        } else if (instruction.instruction == InstructionType.CAL) {
+        } else if (
+            instruction.instruction == InstructionType.CAL &&
+            instruction.parameter < 0
+        ) {
             validationOK = false;
             validationErrors.push({
                 rowIndex: i,
@@ -178,7 +181,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({ rowIndex: i, error: 'JMP musí mít level 0' });
                 continue;
-            } else if (instruction.parameter == 0) {
+            } else if (instruction.parameter < 0) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
@@ -191,7 +194,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({ rowIndex: i, error: 'JMC musí mít level 0' });
                 continue;
-            } else if (instruction.parameter == 0) {
+            } else if (instruction.parameter < 0) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
