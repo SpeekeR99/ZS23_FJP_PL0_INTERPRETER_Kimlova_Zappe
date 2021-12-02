@@ -92,6 +92,7 @@ const Home: NextPage = () => {
                     validationErrors={[]}
                     validationOK={true}
                     instructionsLoaded={instructionsLoaded}
+                    pc={model?.pc ?? 0}
                 />
             </div>
             <div className={styles.stack}>stack</div>

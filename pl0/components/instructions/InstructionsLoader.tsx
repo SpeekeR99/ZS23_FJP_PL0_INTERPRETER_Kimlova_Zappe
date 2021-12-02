@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Badge, Button, Modal } from 'react-bootstrap';
 import { Instruction } from '../../core/model';
 import { ParseAndValidate, PreprocessingError } from '../../core/validator';
+import { ShowToast } from '../../utils/alerts';
 import { OKView } from '../general/OKView';
 
 type InstructionsLoaderProps = {
@@ -13,11 +14,10 @@ type InstructionsLoaderProps = {
 };
 
 export function InstructionsLoader(props: InstructionsLoaderProps) {
-    const [showTextEdit, setShowTextEdit] = useState(false);
-    const [showFileSubmit, setShowFileSubmit] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
-    const handleClose = (fnc: (show: boolean) => void) => fnc(false);
-    const handleShow = (fnc: (show: boolean) => void) => fnc(true);
+    const handleClose = () => setShowModal(false);
+    const handleShow = () => setShowModal(true);
 
     const [textInstructions, setTextInstructions] = useState('');
 
@@ -26,9 +26,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
     const [parseErrors, setParseErrors] = useState<PreprocessingError[]>([]);
     const [validationErrors, setValidationErrors] = useState<PreprocessingError[]>([]);
 
-    function onChange(e: React.FormEvent<HTMLTextAreaElement>): void {
-        setTextInstructions(e.currentTarget.value);
-    }
+    const [instructions, setInstructions] = useState<Instruction[] | null>(null);
 
     useEffect(() => {
         console.log('test');
@@ -40,14 +38,20 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
 
         setParseErrors(pav.parseErrors);
         setValidationErrors(pav.validationErrors);
+
+        if (pav.parseOK && pav.validationOK) {
+            setInstructions(pav.instructions);
+        } else {
+            setInstructions(null);
+        }
     }, [textInstructions]);
 
     function ParseErrorsView() {
         return (
             <div>
                 Parsování instrukcí: <OKView value={parseOK} />
-                {parseErrors.map((e) => (
-                    <code style={{ display: 'block' }}>
+                {parseErrors.map((e, index) => (
+                    <code key={index} style={{ display: 'block' }}>
                         {e.rowIndex}: {e.error}
                     </code>
                 ))}
@@ -58,27 +62,77 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
         return (
             <div>
                 Validace instrukcí: <OKView value={validationOK} />
+                {validationErrors.map((e, index) => (
+                    <code key={index} style={{ display: 'block' }}>
+                        {e.rowIndex}: {e.error}
+                    </code>
+                ))}
             </div>
         );
     }
 
+    function onChange(e: React.FormEvent<HTMLTextAreaElement>): void {
+        setTextInstructions(e.currentTarget.value);
+    }
+
+    function onFileAdded(e: React.FormEvent<HTMLInputElement>) {
+        if (!e.currentTarget.files) return;
+
+        var file = e.currentTarget.files[0];
+        var reader = new FileReader();
+
+        var textFile = /text.*/;
+
+        if (file.type.match(textFile)) {
+            reader.onload = async (e) => {
+                if (!e.target) return;
+
+                const text = e.target.result;
+                if (text && typeof text == 'string') {
+                    setTextInstructions(text);
+                    ShowToast('Soubor s instrukcemi úspěšně načten');
+                } else {
+                    ShowToast('Nepodařilo se zpracovat soubor s instrukcemi', 'error');
+                }
+            };
+        } else {
+            ShowToast(
+                'Nepodařilo se zpracovat soubor s instrukcemi. Nahráváte textový soubor?',
+                'error'
+            );
+        }
+
+        reader.readAsText(file);
+    }
+    function onSave() {
+        if (instructions == null) {
+            ShowToast('Nelze uložit, nebyly nalezeny žádné validní instrukce', 'error');
+            return;
+        }
+
+        props.instructionsLoaded(instructions, validationOK, validationErrors);
+        handleClose();
+    }
+
     return (
         <>
-            <Button variant="primary" onClick={() => handleShow(setShowTextEdit)}>
-                Načíst z textového vstupu
+            <Button variant="primary" onClick={handleShow}>
+                Načíst/upravit instrukce
             </Button>
 
             <Modal
-                show={showTextEdit}
-                onHide={() => handleClose(setShowTextEdit)}
+                show={showModal}
+                onHide={handleClose}
                 backdrop="static"
                 keyboard={false}
                 size="lg"
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Načíst z textového vstupu</Modal.Title>
+                    <Modal.Title>Načíst/upravit instrukce</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <input type="file" onChange={onFileAdded} />
+
                     <div style={{}}>
                         <textarea
                             style={{ width: '100%' }}
@@ -94,15 +148,13 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button
-                        variant="secondary"
-                        onClick={() => handleClose(setShowTextEdit)}
-                    >
+                    <Button variant="secondary" onClick={handleClose}>
                         Zrušit
                     </Button>
                     <Button
                         variant="primary"
-                        onClick={() => handleClose(setShowTextEdit)}
+                        disabled={!(parseOK && validationOK && instructions != null)}
+                        onClick={onSave}
                     >
                         Uložit
                     </Button>

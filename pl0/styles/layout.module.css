@@ -30,7 +30,6 @@
 }
 .instructions {
     grid-area: instructions;
-    background-color: blue;
 }
 .stack {
     grid-area: stack;
