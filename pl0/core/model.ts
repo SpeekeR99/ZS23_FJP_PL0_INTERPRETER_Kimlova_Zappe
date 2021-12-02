@@ -150,54 +150,64 @@ function AllocateBlockFirstFit(heap: Heap, count: number): number {
 function FreeHeapBlock(heap: Heap, address: number) {
     // Find the address
     for (let i = 0; i < heap.blocks.length; i++) {
-        if (heap.blocks[i].index == address && heap.blocks[i].empty) {
+        if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
             // The block to deallocate
             let targetBlock = heap.blocks[i];
             targetBlock.empty = true;
 
+            // @ts-ignore
             let leftBlocks;
+            // @ts-ignore
             let rightBlocks;
 
             // See if the block on the left is empty - if yes, merge it
-            if (i != 0 && heap.blocks[i - 1].empty) {
-                let leftBlock = heap.blocks[i - 1];
-                leftBlocks = heap.blocks.slice(0, i);
-                leftBlocks.pop();
-                targetBlock.size += leftBlock.size;
-                targetBlock.index = leftBlock.index;
+            if (i != 0) {
+                if (heap.blocks[i - 1].empty) {
+                    let leftBlock = heap.blocks[i - 1];
+                    leftBlocks = heap.blocks.slice(0, i);
+                    leftBlocks.pop();
+                    targetBlock.size += leftBlock.size;
+                    targetBlock.index = leftBlock.index;
+                } else {
+                    leftBlocks = heap.blocks.slice(0, i);
+                }
+            } else {
+                leftBlocks = [];
             }
 
-            // Do the same for right
-            if (i != heap.blocks.length - 1 && heap.blocks[i + 1].empty) {
-                let rightBlock = heap.blocks[i + 1];
-                rightBlocks = heap.blocks.slice(i + 1);
-                rightBlocks = rightBlocks.reverse();
-                rightBlocks.pop();
-                rightBlocks = rightBlocks.reverse();
-                targetBlock.size += rightBlock.size;
+            if (i != heap.blocks.length - 1) {
+                if (heap.blocks[i + 1].empty) {
+                    let rightBlock = heap.blocks[i + 1];
+                    rightBlocks = heap.blocks.slice(i + 1);
+                    rightBlocks = rightBlocks.reverse();
+                    rightBlocks.pop();
+                    rightBlocks = rightBlocks.reverse();
+                    targetBlock.size += rightBlock.size;
+                } else {
+                    rightBlocks = heap.blocks.slice(i + 1);
+                }
+            } else {
+                rightBlocks = [];
             }
 
             let resultBlocks: HeapBlock[] = [];
 
-            // If the target was not the first block, push it on the left side
-            if (i != 0 && heap.blocks[i - 1].empty && leftBlocks != undefined) {
+            if (i != 0) {
+                // @ts-ignore
                 leftBlocks.push(targetBlock);
+                // @ts-ignore
                 resultBlocks = resultBlocks.concat(leftBlocks);
             } else {
-                // Otherwise set it as the first block
                 resultBlocks.push(targetBlock);
             }
 
-            // If the target block was not the last block, add the right side to the result
-            if (
-                i != heap.blocks.length - 1 &&
-                heap.blocks[i + 1].empty &&
-                rightBlocks != undefined
-            ) {
+            if (i != heap.blocks.length - 1) {
+                // @ts-ignore
                 resultBlocks = resultBlocks.concat(rightBlocks);
             }
 
             heap.blocks = resultBlocks;
+            return;
         }
     }
 
@@ -208,7 +218,10 @@ function FreeHeapBlock(heap: Heap, address: number) {
 function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
     for (let i = 0; i < heap.blocks.length; i++) {
         let heapBlock = heap.blocks[i];
-        if (heapBlock.index <= address && heapBlock.index + heapBlock.size - 1) {
+        if (
+            heapBlock.index <= address &&
+            address <= heapBlock.index + heapBlock.size - 1
+        ) {
             return heapBlock;
         }
     }
@@ -494,11 +507,20 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
         case InstructionType.NEW:
             var count = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
-            params.model.sp = PushOntoStack(
-                stack,
-                params.model.sp,
-                ConvertToStackItems(AllocateBlockFirstFit(heap, count[0]))
-            );
+
+            if (count[0] <= 0) {
+                params.model.sp = PushOntoStack(
+                    stack,
+                    params.model.sp,
+                    ConvertToStackItems(-1)
+                );
+            } else {
+                params.model.sp = PushOntoStack(
+                    stack,
+                    params.model.sp,
+                    ConvertToStackItems(AllocateBlockFirstFit(heap, count[0]))
+                );
+            }
             params.model.pc++;
             break;
         case InstructionType.DEL:
