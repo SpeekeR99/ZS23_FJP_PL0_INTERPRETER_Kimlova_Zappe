@@ -11,14 +11,30 @@ import {
     InstructionType,
 } from '../core/model';
 import { InitModel } from '../core/operations';
+import { Instructions } from '../components/instructions';
+import { PreprocessingError } from '../core/validator';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
     const [models, setModels] = useState<DataModel[]>([]);
 
     const [version, setVersion] = useState<number>(0);
-    const [instructions, setInstructions] = useState<Instruction[]>([]);
     const [inputTxt, setInputTxt] = useState<string>('');
+
+    const [instructions, setInstructions] = useState<Instruction[]>([]);
+    const [validationOK, setValidationOK] = useState<boolean>(false);
+    const [validationErrors, setValidationErrors] = useState<PreprocessingError[]>([]);
+
+    function instructionsLoaded(
+        instructions: Instruction[],
+        validationOK: boolean,
+        validationErrors: PreprocessingError[]
+    ) {
+        setValidationOK(validationOK);
+        setValidationErrors(validationErrors);
+
+        setInstructions(instructions);
+    }
 
     function start() {
         const m = InitModel(1024 * 512, 5000);
@@ -70,7 +86,14 @@ const Home: NextPage = () => {
             </Head>
 
             <div className={styles.header}>header</div>
-            <div className={styles.instructions}>instructions</div>
+            <div className={styles.instructions}>
+                <Instructions
+                    instructions={instructions}
+                    validationErrors={[]}
+                    validationOK={true}
+                    instructionsLoaded={instructionsLoaded}
+                />
+            </div>
             <div className={styles.stack}>stack</div>
             <div className={styles.heap}>heap</div>
             <div className={styles.io}>io</div>
