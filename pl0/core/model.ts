@@ -60,7 +60,7 @@ export enum InstructionType {
     PST,
 }
 
-enum OperationType {
+export enum OperationType {
     U_MINUS = 1,
     ADD = 2,
     SUB = 3,
@@ -487,6 +487,11 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         case InstructionType.WRI:
             var code = GetValuesFromStack(stack, params.model.sp, 1);
+
+            if (code[0] < 0 || code[0] > 255) {
+                throw new Error('Na vrcholu zásobníku je hodnota mimo interval <0, 255>');
+            }
+
             outputString = String.fromCharCode(code[0]);
             params.model.sp--;
             params.model.pc++;
@@ -508,7 +513,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var count = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
 
-            if (count[0] <= 0) {
+            if (count[0] <= 0 || count[0] > params.model.heap.size) {
                 params.model.sp = PushOntoStack(
                     stack,
                     params.model.sp,
