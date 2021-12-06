@@ -22,8 +22,16 @@ export function HeapBlockVisualisation(props: HeapBlockVisualisationProps) {
                                 ? styles.heapCellEmpty
                                 : styles.heapCellFull
                         }`}
+                        title={
+                            'index: ' +
+                            (props.heapblock.index + i).toString() +
+                            '\nhodnota: ' +
+                            (props.heapblock.empty
+                                ? '-- nealokováno --'
+                                : props.heapblock.values[i].toString())
+                        }
                     >
-                        {props.heapblock.empty ? 'E' : props.heapblock.values[i]}
+                        {props.heapblock.empty ? '' : props.heapblock.values[i]}
                     </div>
                 );
             })}

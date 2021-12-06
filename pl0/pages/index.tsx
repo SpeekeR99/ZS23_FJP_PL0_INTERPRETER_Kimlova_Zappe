@@ -8,6 +8,7 @@ import {
     DataModel,
     Instruction,
     InstructionStepParameters,
+    InstructionStepResult,
     InstructionType,
 } from '../core/model';
 import { InitModel } from '../core/operations';
@@ -16,6 +17,7 @@ import { PreprocessingError } from '../core/validator';
 import { Stack } from '../components/stack';
 import { Button } from 'react-bootstrap';
 import { Heap } from '../components/heap';
+import { Footer } from '../components/footer';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -44,7 +46,7 @@ const Home: NextPage = () => {
     }
 
     function start() {
-        const m = InitModel(1024 * 512, 5000);
+        const m = InitModel(1024, 250);
 
         // empty models (todo better?)
         models.splice(0, models.length);
@@ -52,8 +54,17 @@ const Home: NextPage = () => {
         models.push(JSON.parse(JSON.stringify(m)));
         setModel({ ...m });
     }
+    function play() {
+        let result = nextStep();
+
+        while (result && !result.isEnd) {
+            result = nextStep();
+        }
+    }
     function nextStep() {
         models.push(JSON.parse(JSON.stringify(model)));
+        let result: InstructionStepResult | null = null;
+
         try {
             if (!model) {
                 return;
@@ -67,7 +78,7 @@ const Home: NextPage = () => {
                 input: '',
             };
 
-            const result = core.Operations.NextStep(pars);
+            result = core.Operations.NextStep(pars);
 
             setIsEnd(result.isEnd);
 
@@ -78,9 +89,12 @@ const Home: NextPage = () => {
 
         //setModel({ ...model });
         setVersion(version + 1);
+
+        return result;
     }
     function previous() {
         setModel(models[models.length - 1]);
+        setIsEnd(false);
         models.pop();
     }
 
@@ -92,8 +106,15 @@ const Home: NextPage = () => {
             </Head>
 
             <div className={styles.header}>
-                <Button onClick={nextStep} disabled={!model && !isEnd}>
+                <Button onClick={previous} disabled={!models || !models.length}>
+                    Step back
+                </Button>
+                <Button onClick={nextStep} disabled={!model || isEnd}>
                     Next step
+                </Button>
+
+                <Button onClick={play} disabled={!model}>
+                    Play
                 </Button>
 
                 <Button onClick={start} disabled={!model}>
@@ -116,7 +137,9 @@ const Home: NextPage = () => {
                 <Heap heap={model?.heap} />
             </div>
             <div className={styles.io}>io</div>
-            <div className={styles.footer}>footer</div>
+            <div className={styles.footer}>
+                <Footer />
+            </div>
         </main>
     );
 };

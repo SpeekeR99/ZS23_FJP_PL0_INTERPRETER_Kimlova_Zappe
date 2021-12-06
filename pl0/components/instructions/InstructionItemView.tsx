@@ -9,12 +9,21 @@ type InstructionItemViewProps = {
 };
 export function InstructionItemView(props: InstructionItemViewProps) {
     return (
-        <tr style={props.isNext ? { backgroundColor: 'yellow' } : {}}>
+        <tr
+            style={
+                props.isNext
+                    ? {
+                          backgroundColor: 'white',
+                          borderLeft: '3px solid green',
+                      }
+                    : {}
+            }
+        >
             <td>{props.instruction.index}</td>
             <td>{InstructionType[props.instruction.instruction]}</td>
             <td>{props.instruction.level}</td>
             <td>{props.instruction.parameter}</td>
-            <td>popis</td>
+            <td>{/* TODO */}</td>
         </tr>
     );
 }

@@ -297,8 +297,6 @@ export function ParseAndValidate(input: string): ValidationResult {
         instructions = [];
     }
 
-    console.log(parseErrors);
-    console.log(validationErrors);
 
     return {
         emptyInput: false,

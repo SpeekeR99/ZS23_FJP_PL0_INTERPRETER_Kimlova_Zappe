@@ -30,9 +30,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
     const [instructions, setInstructions] = useState<Instruction[] | null>(null);
 
     useEffect(() => {
-        console.log('test');
         const pav = ParseAndValidate(textInstructions.trim());
-        console.log(pav);
 
         setParseOK(pav.parseOK);
         setValidationOK(pav.validationOK);

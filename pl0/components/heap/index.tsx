@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Heap, Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
+import { Wrapper } from '../general/Wrapper';
 import { HeapVisualisation } from './HeapVisualisation';
 
 type HeapProps = {
@@ -14,13 +15,11 @@ export function Heap(props: HeapProps) {
     }
 
     return (
-        <div
-            style={{
-                maxHeight: '100%',
-            }}
-        >
-            Heap: <br />
-            <HeapVisualisation heap={props.heap} />
-        </div>
+        <Wrapper>
+            <div className="panel">
+                Heap: <br />
+                <HeapVisualisation heap={props.heap} />
+            </div>
+        </Wrapper>
     );
 }

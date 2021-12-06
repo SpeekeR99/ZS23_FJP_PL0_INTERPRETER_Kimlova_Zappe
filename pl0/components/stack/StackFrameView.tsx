@@ -3,6 +3,7 @@ import { Button, Modal } from 'react-bootstrap';
 import { Stack } from '../../core/model';
 import { UIStackFrame } from '../../core/uitransofmation';
 import styles from '../../styles/stack.module.css';
+import { StackFrameValue } from './StackFrameValue';
 
 type StackFrameViewProps = {
     stackFrame: UIStackFrame;
@@ -16,33 +17,21 @@ export function StackFrameView(props: StackFrameViewProps) {
             style={{
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: props.stackFrame.isStackFrame
-                    ? props.stackFrame.color
-                    : 'gray',
-                maxHeight: '100%',
-                height: '100%',
                 flexGrow: 1,
             }}
-            className={styles.stackFrame}
+            className={
+                props.stackFrame.isStackFrame ? styles.stackFrame : styles.stackFrameOut
+            }
         >
             {props.stackFrame.values.map((value, key) => (
-                <div
-                    style={{
-                        width: '100%',
-                        minWidth: '100%',
-                        display: 'flex',
-                        flexDirection: 'row',
-
-                        borderBottomColor: 'yellow',
-                        borderBottomStyle: 'dotted',
-                        borderBottomWidth: props.firstIndex + key === props.sp ? 3 : 0,
-                    }}
+                <StackFrameValue
+                    orderInStackFrame={key}
+                    value={value}
+                    stackFrame={props.stackFrame}
+                    sp={props.sp}
+                    rowIndex={props.firstIndex + key}
                     key={key}
-                    className={styles.stackFrameItem}
-                >
-                    <div style={{ minWidth: '20%' }}>{props.firstIndex + key}</div>
-                    <div style={{ minWidth: '80%' }}>{value.value}</div>
-                </div>
+                />
             ))}
         </div>
     );

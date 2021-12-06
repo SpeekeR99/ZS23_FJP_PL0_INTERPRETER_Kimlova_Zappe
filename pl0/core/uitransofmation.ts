@@ -1,3 +1,4 @@
+import { danger, dark, primary, secondary } from '../constants/Colors';
 import { Stack, StackFrame, StackItem } from './model';
 export interface UIStackFrame {
     startIndex: number;
@@ -18,7 +19,7 @@ function GetRealStackFrame(
     return null;
 }
 
-const sfColors = ['blue', 'green', 'orange', 'red'];
+const sfColors = [primary, secondary, danger, dark];
 export function TransformStackFrames(stack: Stack) {
     const uiStackFrames: UIStackFrame[] = [];
 
