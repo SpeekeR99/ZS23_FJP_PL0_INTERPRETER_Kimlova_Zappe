@@ -41,4 +41,5 @@
 }
 .io {
     grid-area: io;
+    overflow-y: auto;
 }

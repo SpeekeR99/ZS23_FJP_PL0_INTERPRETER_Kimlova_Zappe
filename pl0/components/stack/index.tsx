@@ -9,6 +9,7 @@ import { StackSplitter } from './StackSplitter';
 type StackProps = {
     stack?: Stack;
     sp?: number;
+    base?: number;
 };
 
 export function Stack(props: StackProps) {
@@ -21,6 +22,8 @@ export function Stack(props: StackProps) {
             <div className="panel">
                 Stack: <br />
                 SP: {props.sp}
+                <br />
+                Báze: {props.base}
                 <hr />
                 {TransformStackFrames(props.stack).map((sf, index) => (
                     <>

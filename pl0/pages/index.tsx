@@ -19,6 +19,7 @@ import { Button } from 'react-bootstrap';
 import { Heap } from '../components/heap';
 import { Footer } from '../components/footer';
 import { ExplainInstruction } from '../core/explainer';
+import { IO } from '../components/io';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -26,6 +27,15 @@ const Home: NextPage = () => {
 
     const [version, setVersion] = useState<number>(0);
     const [inputTxt, setInputTxt] = useState<string>('');
+    const [output, setOutputTxt] = useState<string>('');
+    const [warnings, setWarnings] = useState<string[]>([
+        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+    ]);
 
     const [instructions, setInstructions] = useState<Instruction[]>([]);
     const [validationOK, setValidationOK] = useState<boolean>(false);
@@ -103,8 +113,10 @@ const Home: NextPage = () => {
             result = core.Operations.NextStep(pars);
 
             setIsEnd(result.isEnd);
-
             setInputTxt(result.inputNextStep);
+            setOutputTxt(result.output);
+            setWarnings([...warnings, ...result.warnings]);
+
             explainNextInstruction();
         } catch (e) {
             alert((e as Error).message);
@@ -171,12 +183,19 @@ const Home: NextPage = () => {
                 />
             </div>
             <div className={styles.stack}>
-                <Stack sp={model?.sp} stack={model?.stack} />
+                <Stack sp={model?.sp} stack={model?.stack} base={model?.base} />
             </div>
             <div className={styles.heap}>
                 <Heap heap={model?.heap} />
             </div>
-            <div className={styles.io}>io</div>
+            <div className={styles.io}>
+                <IO
+                    inputTxt={inputTxt}
+                    setInputTXT={setInputTxt}
+                    outputTxt={output}
+                    warnings={warnings}
+                />
+            </div>
             <div className={styles.footer}>
                 <Footer />
             </div>
