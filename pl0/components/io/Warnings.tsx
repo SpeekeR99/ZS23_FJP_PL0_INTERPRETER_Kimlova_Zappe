@@ -13,7 +13,6 @@ export function WarningsView(props: WarningsViewProps) {
     return (
         <HeaderWrapper header={'Varování'}>
             <>
-                <div>Varování:</div>
                 {props.warnings?.map((w, index) => (
                     <code style={{ display: 'block' }}>
                         {index + 1}: {w}

@@ -6,6 +6,7 @@ import * as core from '../core/index';
 import React, { useEffect, useState } from 'react';
 import {
     DataModel,
+    EmulationState,
     Instruction,
     InstructionStepParameters,
     InstructionStepResult,
@@ -21,6 +22,7 @@ import { Footer } from '../components/footer';
 import { ExplainInstruction } from '../core/explainer';
 import { IO } from '../components/io';
 import { WarningsView } from '../components/io/Warnings';
+import { ControlPanel } from '../components/controlpanel';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -29,26 +31,15 @@ const Home: NextPage = () => {
     const [version, setVersion] = useState<number>(0);
     const [inputTxt, setInputTxt] = useState<string>('');
     const [output, setOutputTxt] = useState<string>('');
-    const [warnings, setWarnings] = useState<string[]>([
-        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
-        'a hudhas odhas hdpoasj duisah odisa asdzho d',
-    ]);
+    const [warnings, setWarnings] = useState<string[]>([]);
 
     const [instructions, setInstructions] = useState<Instruction[]>([]);
     const [validationOK, setValidationOK] = useState<boolean>(false);
     const [validationErrors, setValidationErrors] = useState<PreprocessingError[]>([]);
 
-    const [isEnd, setIsEnd] = useState(false);
+    const [emulationState, setEmulationState] = useState<EmulationState>(
+        EmulationState.NOT_STARTED
+    );
 
     useEffect(() => {
         if (!model) {
@@ -76,6 +67,9 @@ const Home: NextPage = () => {
 
     function start() {
         const m = InitModel(1024, 250);
+        setEmulationState(EmulationState.NOT_STARTED);
+
+        resetInstructionsExplanations();
 
         // empty models (todo better?)
         models.splice(0, models.length);
@@ -119,7 +113,12 @@ const Home: NextPage = () => {
 
             result = core.Operations.NextStep(pars);
 
-            setIsEnd(result.isEnd);
+            if (result.isEnd) {
+                setEmulationState(EmulationState.FINISHED);
+            } else {
+                setEmulationState(EmulationState.PAUSED);
+            }
+
             setInputTxt(result.inputNextStep);
             setOutputTxt(result.output);
             setWarnings([...warnings, ...result.warnings]);
@@ -127,6 +126,7 @@ const Home: NextPage = () => {
             explainNextInstruction();
         } catch (e) {
             alert((e as Error).message);
+            setEmulationState(EmulationState.ERROR);
         }
 
         //setModel({ ...model });
@@ -136,25 +136,36 @@ const Home: NextPage = () => {
     }
     function previous() {
         setModel(models[models.length - 1]);
-        setIsEnd(false);
+        setEmulationState(EmulationState.PAUSED);
         models.pop();
     }
 
+    function ableToContinue(): boolean {
+        if (!model || model.pc >= instructions.length) {
+            return false;
+        }
+
+        return (
+            emulationState === EmulationState.PAUSED ||
+            emulationState === EmulationState.NOT_STARTED
+        );
+    }
     function explainNextInstruction() {
-        console.log('explain called');
-        if (isEnd || !model || model.pc >= instructions.length) return;
+        if (!ableToContinue() || !model || model.pc >= instructions.length) return;
 
         const pars: InstructionStepParameters | null = getNextStepParameters();
         if (!pars) {
             return;
         }
 
-        console.log(model.pc);
-
         const explanation = ExplainInstruction(pars);
         instructions[model.pc].explanation = explanation;
+    }
 
-        console.log(instructions);
+    function resetInstructionsExplanations() {
+        for (const instruction of instructions) {
+            instruction.explanation = null;
+        }
     }
 
     return (
@@ -165,20 +176,16 @@ const Home: NextPage = () => {
             </Head>
 
             <div className={styles.header}>
-                <Button onClick={previous} disabled={!models || !models.length}>
-                    Step back
-                </Button>
-                <Button onClick={nextStep} disabled={!model || isEnd}>
-                    Next step
-                </Button>
-
-                <Button onClick={play} disabled={!model}>
-                    Play
-                </Button>
-
-                <Button onClick={start} disabled={!model}>
-                    Reset
-                </Button>
+                <ControlPanel
+                    models={models}
+                    model={model}
+                    nextStep={nextStep}
+                    previous={previous}
+                    play={play}
+                    start={start}
+                    emulationState={emulationState}
+                    canContinue={ableToContinue}
+                />
             </div>
             <div className={styles.instructions}>
                 <Instructions

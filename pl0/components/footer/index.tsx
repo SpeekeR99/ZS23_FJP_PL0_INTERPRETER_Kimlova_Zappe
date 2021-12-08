@@ -8,12 +8,14 @@ export function Footer() {
                 display: 'flex',
                 flexDirection: 'row',
                 backgroundColor: primary,
-                height: '100%',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 boxShadow: '2px 2px 5px 2px rgba(0,0,0,0.1)',
                 borderTopLeftRadius: '0px',
                 borderTopRightRadius: '0px',
+                overflow: 'hidden',
+                fontSize: 'small',
+                fontWeight: 'lighter',
             }}
             className="panel"
         >

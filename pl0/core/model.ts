@@ -99,6 +99,13 @@ export interface InstructionStepResult {
     inputNextStep: string;
 }
 
+export enum EmulationState {
+    NOT_STARTED,
+    PAUSED,
+    FINISHED,
+    ERROR,
+}
+
 // ------------------------------------------- INTERFACES
 
 // ------------------------------------------- HEAP UTILITY FUNCTIONS

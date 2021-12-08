@@ -72,7 +72,7 @@ export function InstructionExplanation(props: InstructionExplanationProps) {
     }
 
     if (!props.explanation || !props.explanation.message) {
-        return <span>???</span>;
+        return <span></span>;
     }
     return (
         <div>
