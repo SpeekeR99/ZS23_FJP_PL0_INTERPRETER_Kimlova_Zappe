@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { InstructionsHighligting } from '../../core/highlighting';
 import { Instruction } from '../../core/model';
 import { PreprocessingError } from '../../core/validator';
 import { HeaderWrapper } from '../general/HeaderWrapper';
@@ -18,7 +19,7 @@ type InstructionProps = {
         validationErrors: PreprocessingError[]
     ) => void;
 
-    instructionsToBeHighlighted: Map<number, string>;
+    instructionsToBeHighlighted: InstructionsHighligting | null;
 };
 
 export function Instructions(props: InstructionProps) {

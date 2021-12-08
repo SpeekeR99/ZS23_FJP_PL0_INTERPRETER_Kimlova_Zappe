@@ -207,7 +207,7 @@ const Home: NextPage = () => {
                     pc={model?.pc ?? 0}
                     instructionsToBeHighlighted={
                         model == null
-                            ? new Map<number, string>()
+                            ? null
                             : InstructionsToBeHighlighted(
                                   instructions[model?.pc ?? 0].explanationParts
                               )

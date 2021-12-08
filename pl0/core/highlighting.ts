@@ -87,23 +87,40 @@ export function StackToBeHighlighted(
     return colorMap;
 }
 
+export interface InstructionsHighligting {
+    rowColors: Map<number, string>;
+    level: string | null;
+    parameter: string | null;
+}
 export function InstructionsToBeHighlighted(
     parts: ExplanationMessagePart[] | null
-): Map<number, string> {
+): InstructionsHighligting {
+    const ih: InstructionsHighligting = {
+        rowColors: new Map<number, string>(),
+        level: null,
+        parameter: null,
+    };
+
     if (!parts) {
-        return new Map<number, string>();
+        return ih;
     }
-    let colorMap = new Map<number, string>();
 
     for (const part of FilterParts(parts)) {
         if (part.placeholder?.stack && part.color) {
             for (const instructions of part.placeholder?.instructions) {
-                colorMap.set(instructions, part.color);
+                ih.rowColors.set(instructions, part.color);
+            }
+
+            if (part.placeholder.level) {
+                ih.level = part.color;
+            }
+            if (part.placeholder.parameter) {
+                ih.parameter = part.color;
             }
         }
     }
 
-    return colorMap;
+    return ih;
 }
 
 export function HeapToBeHighlighted(

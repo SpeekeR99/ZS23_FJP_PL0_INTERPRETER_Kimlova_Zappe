@@ -3,11 +3,12 @@ import { Table } from 'react-bootstrap';
 import { Instruction } from '../../core/model';
 import { InstructionItemView } from './InstructionItemView';
 import styles from '../../styles/instructions.module.css';
+import { InstructionsHighligting } from '../../core/highlighting';
 
 type InstructionsTableProps = {
     instructions: Instruction[];
     pc: number;
-    instructionsToBeHighlighted: Map<number, string>;
+    instructionsToBeHighlighted: InstructionsHighligting | null;
 };
 export function InstructionsTable(props: InstructionsTableProps) {
     return (
