@@ -228,7 +228,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
     switch (op) {
         case InstructionType.LIT:
-            explanation.message = 'Přidat hodnotu %1 na vrchol zásobníku';
+            explanation.message = 'Přidá hodnotu %1 na vrchol zásobníku';
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -246,7 +246,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             explanation = ExplainOPR(stack, parameter, params.model.sp);
             break;
         case InstructionType.INT:
-            explanation.message = 'Zvýšit vrchol zásobníku o %1';
+            explanation.message = 'Zvýší vrchol zásobníku o %1';
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -274,9 +274,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 highlightType: HighlightType.BOLD,
             });
             if (parameter >= params.instructions.length) {
-                explanation.message = 'Skok na instrukci %1, která neexistuje';
+                explanation.message = 'Skočí na instrukci %1, která neexistuje';
             } else {
-                explanation.message = 'Skok na instrukci %1';
+                explanation.message = 'Skočí na instrukci %1';
                 explanation.placeholders[0].instructions.push(parameter);
             }
             break;
@@ -380,9 +380,8 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 break;
             }
             explanation.message =
-                'Skok na instrukci %1, vytvoření rámce s následující instrukcí (' +
-                params.model.pc +
-                1 +
+                'Skočí na instrukci %1, vytvoří rámec s následující instrukcí (' +
+                (params.model.pc + 1) +
                 '), dynamickou bází (%2) a statickou bází (%3)';
             explanation.placeholders.push({
                 placeholder: '1',
@@ -426,12 +425,12 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.RET:
             if (params.model.base == 0) {
-                explanation.message = 'Ukončení programu';
+                explanation.message = 'Konec programu';
                 break;
             }
 
             explanation.message =
-                'Odstranění rámce, skok na instrukci %1, nastavení báze na dynamickou bázi %2, SP=%3';
+                'Odstraní rámec, skočí na instrukci %1, nastaví bázi na dynamickou bázi %2, SP=%3';
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[params.model.base + 2].value,
@@ -530,7 +529,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 ')';
             explanation.placeholders.push({
                 placeholder: '1',
-                value: stack.stackItems[address].value,
+                value: stack.stackItems[params.model.sp].value,
                 heap: [],
                 stack: [address],
                 instructions: [],
@@ -557,7 +556,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
             explanation.placeholders.push({
                 placeholder: '3',
-                value: address,
+                value: parameter,
                 heap: [],
                 stack: [address],
                 instructions: [],
@@ -1198,7 +1197,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
         case OperationType.LESS_THAN:
             explanation.message =
-                'Test menší než prvních dvou hodnot na vrcholu zásobníku (%2 < %1)';
+                "Test 'menší než' prvních dvou hodnot na vrcholu zásobníku (%2 < %1)";
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1233,7 +1232,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
         case OperationType.MORE_EQ_THAN:
             explanation.message =
-                'Test větší nebo rovno prvních dvou hodnot na vrcholu zásobníku (%2 >= %1)';
+                "Test 'větší nebo rovno' prvních dvou hodnot na vrcholu zásobníku (%2 >= %1)";
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1268,7 +1267,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
         case OperationType.MORE_THAN:
             explanation.message =
-                'Test větší než prvních dvou hodnot na vrcholu zásobníku (%2 > %1)';
+                "Test 'větší než' prvních dvou hodnot na vrcholu zásobníku (%2 > %1)";
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1303,7 +1302,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
         case OperationType.LESS_EQ_THAN:
             explanation.message =
-                'Test menší nebo rovno prvních dvou hodnot na vrcholu zásobníku (%2 <= %1)';
+                "Test 'menší nebo rovno' prvních dvou hodnot na vrcholu zásobníku (%2 <= %1)";
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
