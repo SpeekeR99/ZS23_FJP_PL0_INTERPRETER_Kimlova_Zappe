@@ -493,6 +493,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             }
 
             outputString = String.fromCharCode(code[0]);
+            inputString = inputString.substring(1);
             params.model.sp--;
             params.model.pc++;
             break;
