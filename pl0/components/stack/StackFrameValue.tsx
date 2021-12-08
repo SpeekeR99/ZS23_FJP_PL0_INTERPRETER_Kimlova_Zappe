@@ -18,16 +18,6 @@ function addAlpha(color: string, opacity: number): string {
     const _opacity = Math.round(Math.min(Math.max(opacity || 1, 0), 1) * 255);
     return color + _opacity.toString(16).toUpperCase();
 }
-function getTextColor(bg: string) {
-    if (bg.length > 7) {
-        const alpha = parseInt(bg.substring(bg.length - 2), 16);
-        if (alpha < 150) {
-            return 'black';
-        }
-    }
-
-    return 'white';
-}
 
 export function StackFrameValue(props: StackFrameValueProps) {
     const isSF = props.stackFrame.isStackFrame;
@@ -46,6 +36,19 @@ export function StackFrameValue(props: StackFrameValueProps) {
         ? addAlpha(props.stackFrame.color, 0.5)
         : 'gray';
 
+    function getTextColor(bg: string) {
+        if (isHighlighted) {
+            return 'black';
+        }
+        if (bg.length > 7) {
+            const alpha = parseInt(bg.substring(bg.length - 2), 16);
+            if (alpha < 150) {
+                return 'black';
+            }
+        }
+
+        return 'white';
+    }
     return (
         <div className={styles.stackFrameItem}>
             <div
