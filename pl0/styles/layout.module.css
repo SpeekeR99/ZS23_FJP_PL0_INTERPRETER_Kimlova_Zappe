@@ -5,7 +5,7 @@
         [header-start] 'header header header header' 60px [header-end]
         [main-start] 'instructions stack heap io' 1fr [main-end]
         [footer-start] 'footer footer footer footer' 40px [footer-end]
-        / minmax(300px, 2fr) 1fr 2fr 2fr;
+        / minmax(300px, 3fr) 1fr 2fr 1fr;
 
     place-items: stretch;
     place-content: stretch;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Instruction, InstructionType } from '../../core/model';
+import { InstructionExplanation } from './InstructionExplanation';
 
 type InstructionItemViewProps = {
     instruction: Instruction;
@@ -23,7 +24,11 @@ export function InstructionItemView(props: InstructionItemViewProps) {
             <td>{InstructionType[props.instruction.instruction]}</td>
             <td>{props.instruction.level}</td>
             <td>{props.instruction.parameter}</td>
-            <td>{/* TODO */}</td>
+            <td>
+                <InstructionExplanation
+                    explanation={props.instruction.explanation ?? null}
+                />
+            </td>
         </tr>
     );
 }

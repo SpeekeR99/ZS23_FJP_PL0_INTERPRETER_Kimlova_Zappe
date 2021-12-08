@@ -1,3 +1,4 @@
+import { Explanation } from './explainer';
 // ------------------------------------------- INTERFACES
 
 import { BlockList } from 'net';
@@ -81,6 +82,7 @@ export interface Instruction {
     instruction: InstructionType;
     level: number;
     parameter: number;
+    explanation?: Explanation | null;
 }
 
 export interface InstructionStepParameters {
