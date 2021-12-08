@@ -205,7 +205,7 @@ const Home: NextPage = () => {
                     validationErrors={[]}
                     validationOK={true}
                     instructionsLoaded={instructionsLoaded}
-                    pc={model?.pc ?? 0}
+                    pc={model?.pc ?? null}
                     instructionsToBeHighlighted={
                         model == null
                             ? null
@@ -256,9 +256,10 @@ const Home: NextPage = () => {
                     </div>
                 </>
             )}
+            {/*}
             <div className={styles.footer}>
                 <Footer />
-            </div>
+                        </div>*/}
         </main>
     );
 };

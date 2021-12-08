@@ -12,7 +12,7 @@ type InstructionProps = {
     instructions: Instruction[];
     validationOK: boolean;
     validationErrors: PreprocessingError[];
-    pc: number;
+    pc: number | null;
     instructionsLoaded: (
         instructions: Instruction[],
         validationOK: boolean,
@@ -25,10 +25,13 @@ type InstructionProps = {
 export function Instructions(props: InstructionProps) {
     return (
         <HeaderWrapper header={'Instrukce'}>
-            <InstructionsLoader instructionsLoaded={props.instructionsLoaded} />
+            <InstructionsLoader
+                instructionsLoaded={props.instructionsLoaded}
+                pc={props.pc}
+            />
             <InstructionsTable
                 instructions={props.instructions}
-                pc={props.pc}
+                pc={props.pc ?? 0}
                 instructionsToBeHighlighted={props.instructionsToBeHighlighted}
             />
         </HeaderWrapper>

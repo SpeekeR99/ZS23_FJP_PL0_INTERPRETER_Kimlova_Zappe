@@ -26,34 +26,57 @@ type ControlPanelProps = {
 };
 export function ControlPanel(props: ControlPanelProps) {
     return (
-        <div>
-            <IconButton
-                onClick={props.previous}
-                disabled={!props.models || !props.models.length}
-                text={'Step back'}
-                icon={faStepBackward}
-            />
-            <IconButton
-                onClick={props.nextStep}
-                disabled={!props.canContinue()}
-                text={'Next step'}
-                icon={faStepForward}
-                style={ButtonStyle.STANDARD}
-            />
-            <IconButton
-                onClick={props.play}
-                disabled={!props.model}
-                text={'Play'}
-                icon={faPlay}
-                style={ButtonStyle.STANDARD}
-            />
-            <IconButton
-                onClick={props.start}
-                disabled={!props.model}
-                text={'Reset'}
-                icon={faRedo}
-                style={ButtonStyle.DANGER}
-            />
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                padding: '20px',
+            }}
+        >
+            <div>
+                <IconButton
+                    onClick={props.previous}
+                    disabled={!props.models || !props.models.length}
+                    text={'Krok zpět'}
+                    icon={faStepBackward}
+                />
+                <IconButton
+                    onClick={props.nextStep}
+                    disabled={!props.canContinue()}
+                    text={'Krok vpřed'}
+                    icon={faStepForward}
+                    style={ButtonStyle.STANDARD}
+                />
+                <IconButton
+                    onClick={props.play}
+                    disabled={!props.model}
+                    text={'Spustit'}
+                    icon={faPlay}
+                    style={ButtonStyle.STANDARD}
+                />
+                <IconButton
+                    onClick={props.start}
+                    disabled={!props.model}
+                    text={'Obnovit'}
+                    icon={faRedo}
+                    style={ButtonStyle.DANGER}
+                />
+            </div>
+            {/*
+            <div
+                style={{
+                    marginRight: '30px',
+                    color: light,
+                    fontSize: 'small',
+                    justifySelf: 'flex-end',
+                }}
+            >
+                Vytvořili Lukáš Vlček a Vojtěch Bartička <br />
+                Semestrální práce z KIV/FJP, FAV ZČU 2021/2022
+            </div>*/}
         </div>
     );
 }

@@ -31,8 +31,12 @@ export function Stack(props: StackProps) {
                         justifyContent: 'space-evenly',
                     }}
                 >
-                    <div>SP: {props.sp}</div>
-                    <div>Báze: {props.base}</div>
+                    <div>
+                        SP: <b>{props.sp}</b>
+                    </div>
+                    <div>
+                        Báze: <b>{props.base}</b>
+                    </div>
                 </div>
                 <hr />
                 {TransformStackFrames(props.stack).map((sf, index) => (

@@ -14,6 +14,7 @@ type InstructionsLoaderProps = {
         validationOK: boolean,
         validationErrors: PreprocessingError[]
     ) => void;
+    pc: number | null;
 };
 
 export function InstructionsLoader(props: InstructionsLoaderProps) {
@@ -117,12 +118,28 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
 
     return (
         <>
-            <IconButton
-                onClick={handleShow}
-                text={'Načíst/upravit instrukce'}
-                icon={faEdit}
-                style={ButtonStyle.STANDARD}
-            />
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingRight: '10px',
+                    marginBottom: '15px',
+                }}
+            >
+                <IconButton
+                    onClick={handleShow}
+                    text={'Načíst/upravit instrukce'}
+                    icon={faEdit}
+                    style={ButtonStyle.STANDARD}
+                />
+                {props.pc !== null && (
+                    <div>
+                        PC: <b>{props.pc}</b>
+                    </div>
+                )}
+            </div>
 
             <Modal
                 show={showModal}
