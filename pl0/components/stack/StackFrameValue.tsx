@@ -26,15 +26,16 @@ export function StackFrameValue(props: StackFrameValueProps) {
     const isHighlighted = props.stackToBeHighlighed.has(props.rowIndex);
     const hightlighColor = isHighlighted
         ? props.stackToBeHighlighed.get(props.rowIndex)
-        : null;
+        : props.stackFrame.color;
 
-    const valueBackground = isHighlighted
-        ? hightlighColor
-        : isSFHeader
-        ? addAlpha(props.stackFrame.color, 0.8)
-        : isSF
-        ? addAlpha(props.stackFrame.color, 0.5)
-        : 'gray';
+    const valueBackground: string =
+        (isHighlighted
+            ? hightlighColor
+            : isSFHeader
+            ? addAlpha(props.stackFrame.color, 0.8)
+            : isSF
+            ? addAlpha(props.stackFrame.color, 0.5)
+            : 'gray') ?? props.stackFrame.color;
 
     function getTextColor(bg: string) {
         if (isHighlighted) {
@@ -58,7 +59,12 @@ export function StackFrameValue(props: StackFrameValueProps) {
                         : styles.stackRowIndexOutSF
                 }`}
                 style={{
-                    backgroundColor: isSF ? props.stackFrame.color : 'red',
+                    backgroundColor: isHighlighted
+                        ? hightlighColor
+                        : isSF
+                        ? props.stackFrame.color
+                        : 'red',
+                    color: isHighlighted ? 'black' : 'white',
                 }}
             >
                 {props.rowIndex}
