@@ -5,7 +5,9 @@ import { ParseAndValidate, PreprocessingError } from '../../core/validator';
 import { ShowToast } from '../../utils/alerts';
 import { OKView } from '../general/OKView';
 import styles from '../../styles/instructions.module.css';
+import { ButtonStyle, IconButton } from '../general/IconButton';
 
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
 type InstructionsLoaderProps = {
     instructionsLoaded: (
         instructions: Instruction[],
@@ -115,9 +117,12 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
 
     return (
         <>
-            <Button variant="primary" onClick={handleShow}>
-                Načíst/upravit instrukce
-            </Button>
+            <IconButton
+                onClick={handleShow}
+                text={'Načíst/upravit instrukce'}
+                icon={faEdit}
+                style={ButtonStyle.STANDARD}
+            />
 
             <Modal
                 show={showModal}
