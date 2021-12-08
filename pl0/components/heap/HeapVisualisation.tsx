@@ -6,6 +6,7 @@ import { HeapBlockVisualisation } from './HeapBlockVisualisation';
 
 type HeapVisualisationProps = {
     heap: Heap;
+    heapToBeHighlighted: Map<number, string>;
 };
 
 export function HeapVisualisation(props: HeapVisualisationProps) {
@@ -20,7 +21,11 @@ export function HeapVisualisation(props: HeapVisualisationProps) {
         >
             <>
                 {props.heap.blocks.map((hb, index) => (
-                    <HeapBlockVisualisation heapblock={hb} key={index} />
+                    <HeapBlockVisualisation
+                        heapblock={hb}
+                        key={index}
+                        heapToBeHighlighted={props.heapToBeHighlighted}
+                    />
                 ))}
             </>
         </div>

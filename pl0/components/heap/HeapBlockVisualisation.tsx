@@ -7,6 +7,7 @@ import classNames from 'classnames';
 
 type HeapBlockVisualisationProps = {
     heapblock: HeapBlock;
+    heapToBeHighlighted: Map<number, string>;
 };
 
 export function HeapBlockVisualisation(props: HeapBlockVisualisationProps) {
@@ -15,17 +16,31 @@ export function HeapBlockVisualisation(props: HeapBlockVisualisationProps) {
     return (
         <>
             {[...Array(props.heapblock.size)].map((e, i) => {
+                const index = props.heapblock.index + i;
+                const highlightedColor: string | null = props.heapToBeHighlighted.has(
+                    index
+                )
+                    ? props.heapToBeHighlighted.get(index) ?? null
+                    : null;
                 return (
                     <div
-                        key={props.heapblock.index + i}
+                        key={index}
                         className={`${styles.heapCell} ${
                             props.heapblock.empty
                                 ? styles.heapCellEmpty
                                 : styles.heapCellFull
                         }`}
+                        style={
+                            highlightedColor
+                                ? {
+                                      backgroundColor: highlightedColor,
+                                      color: 'black',
+                                  }
+                                : {}
+                        }
                         title={
                             'index: ' +
-                            (props.heapblock.index + i).toString() +
+                            index.toString() +
                             '\nhodnota: ' +
                             (props.heapblock.empty
                                 ? '-- nealokováno --'

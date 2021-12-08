@@ -24,6 +24,7 @@ import { IO } from '../components/io';
 import { WarningsView } from '../components/io/Warnings';
 import { ControlPanel } from '../components/controlpanel';
 import {
+    HeapToBeHighlighted,
     InstructionsToBeHighlighted,
     SplitExplanationMessageParts,
     StackToBeHighlighted,
@@ -214,29 +215,47 @@ const Home: NextPage = () => {
                     }
                 />
             </div>
-            <div className={styles.stack}>
-                <Stack
-                    sp={model?.sp}
-                    stack={model?.stack}
-                    base={model?.base}
-                    stackToBeHighlighed={
-                        model == null
-                            ? new Map<number, string>()
-                            : StackToBeHighlighted(
-                                  instructions[model?.pc ?? 0].explanationParts
-                              )
-                    }
-                />
-            </div>
-            <div className={styles.heap}>
-                <Heap heap={model?.heap} />
-            </div>
-            <div className={styles.io}>
-                <IO inputTxt={inputTxt} setInputTXT={setInputTxt} outputTxt={output} />
-            </div>
-            <div className={styles.warnings}>
-                <WarningsView warnings={warnings} />
-            </div>
+
+            {model && (
+                <>
+                    <div className={styles.stack}>
+                        <Stack
+                            sp={model?.sp}
+                            stack={model?.stack}
+                            base={model?.base}
+                            stackToBeHighlighed={
+                                model == null
+                                    ? new Map<number, string>()
+                                    : StackToBeHighlighted(
+                                          instructions[model?.pc ?? 0].explanationParts
+                                      )
+                            }
+                        />
+                    </div>
+                    <div className={styles.heap}>
+                        <Heap
+                            heap={model?.heap}
+                            heapToBeHighlighted={
+                                model == null
+                                    ? new Map<number, string>()
+                                    : HeapToBeHighlighted(
+                                          instructions[model?.pc ?? 0].explanationParts
+                                      )
+                            }
+                        />
+                    </div>
+                    <div className={styles.io}>
+                        <IO
+                            inputTxt={inputTxt}
+                            setInputTXT={setInputTxt}
+                            outputTxt={output}
+                        />
+                    </div>
+                    <div className={styles.warnings}>
+                        <WarningsView warnings={warnings} />
+                    </div>
+                </>
+            )}
             <div className={styles.footer}>
                 <Footer />
             </div>

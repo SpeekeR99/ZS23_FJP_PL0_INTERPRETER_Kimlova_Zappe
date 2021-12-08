@@ -15,13 +15,17 @@ type InstructionItemViewProps = {
     instructionsToBeHighlighted: InstructionsHighligting | null;
 };
 export function InstructionItemView(props: InstructionItemViewProps) {
-    const highlightedRow = props.instructionsToBeHighlighted?.rowColors.has(
-        props.instruction.index
-    )
-        ? props.instructionsToBeHighlighted?.rowColors.get(props.instruction.index)
+    const highlightedRow = props.isNext
+        ? props.instructionsToBeHighlighted?.rowColors.has(props.instruction.index)
+            ? props.instructionsToBeHighlighted?.rowColors.get(props.instruction.index)
+            : null
         : null;
-    const highlightedPar = props.instructionsToBeHighlighted?.parameter;
-    const highlightedLevel = props.instructionsToBeHighlighted?.level;
+    const highlightedPar = props.isNext
+        ? props.instructionsToBeHighlighted?.parameter ?? null
+        : null;
+    const highlightedLevel = props.isNext
+        ? props.instructionsToBeHighlighted?.level ?? null
+        : null;
 
     return (
         <tr
@@ -69,6 +73,7 @@ export function InstructionItemView(props: InstructionItemViewProps) {
             >
                 {props.instruction.parameter}
             </td>
+
             <td>
                 <InstructionExplanation
                     explanationParts={props.instruction.explanationParts ?? []}

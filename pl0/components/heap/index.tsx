@@ -8,6 +8,7 @@ import { HeapVisualisation } from './HeapVisualisation';
 
 type HeapProps = {
     heap?: Heap;
+    heapToBeHighlighted: Map<number, string>;
 };
 
 export function Heap(props: HeapProps) {
@@ -17,7 +18,10 @@ export function Heap(props: HeapProps) {
 
     return (
         <HeaderWrapper header={'Halda'}>
-            <HeapVisualisation heap={props.heap} />
+            <HeapVisualisation
+                heap={props.heap}
+                heapToBeHighlighted={props.heapToBeHighlighted}
+            />
         </HeaderWrapper>
     );
 }
