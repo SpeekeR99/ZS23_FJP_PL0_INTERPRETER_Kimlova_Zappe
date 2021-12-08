@@ -23,7 +23,11 @@ import { ExplainInstruction } from '../core/explainer';
 import { IO } from '../components/io';
 import { WarningsView } from '../components/io/Warnings';
 import { ControlPanel } from '../components/controlpanel';
-import { SplitExplanationMessageParts, StackToBeHighlighted } from '../core/highlighting';
+import {
+    InstructionsToBeHighlighted,
+    SplitExplanationMessageParts,
+    StackToBeHighlighted,
+} from '../core/highlighting';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -201,6 +205,13 @@ const Home: NextPage = () => {
                     validationOK={true}
                     instructionsLoaded={instructionsLoaded}
                     pc={model?.pc ?? 0}
+                    instructionsToBeHighlighted={
+                        model == null
+                            ? new Map<number, string>()
+                            : InstructionsToBeHighlighted(
+                                  instructions[model?.pc ?? 0].explanationParts
+                              )
+                    }
                 />
             </div>
             <div className={styles.stack}>

@@ -86,3 +86,41 @@ export function StackToBeHighlighted(
 
     return colorMap;
 }
+
+export function InstructionsToBeHighlighted(
+    parts: ExplanationMessagePart[] | null
+): Map<number, string> {
+    if (!parts) {
+        return new Map<number, string>();
+    }
+    let colorMap = new Map<number, string>();
+
+    for (const part of FilterParts(parts)) {
+        if (part.placeholder?.stack && part.color) {
+            for (const instructions of part.placeholder?.instructions) {
+                colorMap.set(instructions, part.color);
+            }
+        }
+    }
+
+    return colorMap;
+}
+
+export function HeapToBeHighlighted(
+    parts: ExplanationMessagePart[] | null
+): Map<number, string> {
+    if (!parts) {
+        return new Map<number, string>();
+    }
+    let colorMap = new Map<number, string>();
+
+    for (const part of FilterParts(parts)) {
+        if (part.placeholder?.stack && part.color) {
+            for (const heap of part.placeholder?.heap) {
+                colorMap.set(heap, part.color);
+            }
+        }
+    }
+
+    return colorMap;
+}

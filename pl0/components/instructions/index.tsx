@@ -17,13 +17,19 @@ type InstructionProps = {
         validationOK: boolean,
         validationErrors: PreprocessingError[]
     ) => void;
+
+    instructionsToBeHighlighted: Map<number, string>;
 };
 
 export function Instructions(props: InstructionProps) {
     return (
         <HeaderWrapper header={'Instrukce'}>
             <InstructionsLoader instructionsLoaded={props.instructionsLoaded} />
-            <InstructionsTable instructions={props.instructions} pc={props.pc} />
+            <InstructionsTable
+                instructions={props.instructions}
+                pc={props.pc}
+                instructionsToBeHighlighted={props.instructionsToBeHighlighted}
+            />
         </HeaderWrapper>
     );
 }

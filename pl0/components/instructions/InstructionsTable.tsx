@@ -7,6 +7,7 @@ import styles from '../../styles/instructions.module.css';
 type InstructionsTableProps = {
     instructions: Instruction[];
     pc: number;
+    instructionsToBeHighlighted: Map<number, string>;
 };
 export function InstructionsTable(props: InstructionsTableProps) {
     return (
@@ -28,6 +29,7 @@ export function InstructionsTable(props: InstructionsTableProps) {
                         hasBreakpoint={false}
                         hasError={false}
                         isNext={index == props.pc}
+                        instructionsToBeHighlighted={props.instructionsToBeHighlighted}
                     />
                 ))}
             </tbody>
