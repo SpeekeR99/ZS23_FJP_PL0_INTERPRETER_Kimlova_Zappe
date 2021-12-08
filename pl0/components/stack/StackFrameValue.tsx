@@ -24,18 +24,18 @@ export function StackFrameValue(props: StackFrameValueProps) {
     const isSFHeader = isSF && props.orderInStackFrame < 3;
 
     const isHighlighted = props.stackToBeHighlighed.has(props.rowIndex);
-    const hightlighColor = isHighlighted
-        ? props.stackToBeHighlighed.get(props.rowIndex)
-        : props.stackFrame.color;
-
-    const valueBackground: string =
+    const hightlighColor =
         (isHighlighted
-            ? hightlighColor
-            : isSFHeader
-            ? addAlpha(props.stackFrame.color, 0.8)
-            : isSF
-            ? addAlpha(props.stackFrame.color, 0.5)
-            : 'gray') ?? props.stackFrame.color;
+            ? props.stackToBeHighlighed.get(props.rowIndex)
+            : props.stackFrame.color) ?? props.stackFrame.color;
+
+    const valueBackground: string = isHighlighted
+        ? addAlpha(hightlighColor, 0.8)
+        : isSFHeader
+        ? addAlpha(props.stackFrame.color, 0.8)
+        : isSF
+        ? addAlpha(props.stackFrame.color, 0.5)
+        : 'gray';
 
     function getTextColor(bg: string) {
         if (isHighlighted) {
