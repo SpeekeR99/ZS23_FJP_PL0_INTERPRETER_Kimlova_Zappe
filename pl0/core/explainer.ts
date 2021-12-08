@@ -1,3 +1,4 @@
+import { basename } from 'path/posix';
 import {
     Instruction,
     InstructionType,
@@ -379,7 +380,10 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 break;
             }
             explanation.message =
-                'Skok na instrukci %1, vytvoření rámce s následující instrukcí (%1), dynamickou bází (%2) a statickou bází (%3)';
+                'Skok na instrukci %1, vytvoření rámce s následující instrukcí (' +
+                params.model.pc +
+                1 +
+                '), dynamickou bází (%2) a statickou bází (%3)';
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -473,7 +477,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 break;
             }
 
-            var address = params.model.base + parameter;
+            var address = bases[bases.length - 1] + parameter;
 
             explanation.message =
                 'Načte hodnotu z levelu %1 adresy %2 zásobníku (index ' +
@@ -518,7 +522,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 break;
             }
 
-            var address = params.model.base + parameter;
+            var address = bases[bases.length - 1] + parameter;
 
             explanation.message =
                 'Uloží hodnotu na vrcholu zásobníku (%1) na level %2 adresu %3 zásobníku (index ' +
