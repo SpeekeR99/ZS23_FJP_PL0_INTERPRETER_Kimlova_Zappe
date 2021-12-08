@@ -30,7 +30,7 @@ export function StackFrameValue(props: StackFrameValueProps) {
             : props.stackFrame.color) ?? props.stackFrame.color;
 
     const valueBackground: string = isHighlighted
-        ? addAlpha(hightlighColor, 0.8)
+        ? addAlpha(hightlighColor, 0.6)
         : isSFHeader
         ? addAlpha(props.stackFrame.color, 0.8)
         : isSF
