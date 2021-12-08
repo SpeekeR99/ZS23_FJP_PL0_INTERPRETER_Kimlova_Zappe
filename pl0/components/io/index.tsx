@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
+import { HeaderWrapper } from '../general/HeaderWrapper';
+import { HeaderWrapperSemi } from '../general/HeaderWrapperSemi';
 import { Wrapper } from '../general/Wrapper';
 import { Input } from './Input';
 import { Output } from './Output';
@@ -12,8 +14,6 @@ type IOProps = {
     setInputTXT: (newValue: string) => void;
 
     outputTxt: string;
-
-    warnings: string[];
 };
 
 export function IO(props: IOProps) {
@@ -28,23 +28,12 @@ export function IO(props: IOProps) {
                     maxHeight: '100%',
                 }}
             >
-                <div className="panelNH">
+                <HeaderWrapperSemi header={'Vstup'}>
                     <Input inputTxt={props.inputTxt} setInputTXT={props.setInputTXT} />
-                </div>
-                <div className="panelNH" style={{ marginTop: '30px' }}>
+                </HeaderWrapperSemi>
+                <HeaderWrapperSemi header={'Výstup'} style={{ flexGrow: 1 }}>
                     <Output outputTxt={props.outputTxt} />
-                </div>
-                <div
-                    className="panelNH"
-                    style={{
-                        marginTop: '30px',
-                        flexGrow: 1,
-                        flexShrink: 1,
-                        overflow: 'auto',
-                    }}
-                >
-                    <WarningsView warnings={props.warnings} />
-                </div>
+                </HeaderWrapperSemi>
             </div>
         </Wrapper>
     );

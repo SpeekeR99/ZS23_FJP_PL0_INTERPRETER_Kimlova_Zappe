@@ -20,6 +20,7 @@ import { Heap } from '../components/heap';
 import { Footer } from '../components/footer';
 import { ExplainInstruction } from '../core/explainer';
 import { IO } from '../components/io';
+import { WarningsView } from '../components/io/Warnings';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -32,6 +33,12 @@ const Home: NextPage = () => {
         'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
         'a hudhas odhas hdpoasj duisah odisa asdzho d',
         'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
+        'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
+        'a hudhas odhas hdpoasj duisah odisa asdzho d',
         'a hudhas odhas hdpoasj duisah odisa asdzho d',
         'asuidhasiudhuasihduisahdui hasi dhsaiol dhuoai dhual',
         'a hudhas odhas hdpoasj duisah odisa asdzho d',
@@ -189,12 +196,10 @@ const Home: NextPage = () => {
                 <Heap heap={model?.heap} />
             </div>
             <div className={styles.io}>
-                <IO
-                    inputTxt={inputTxt}
-                    setInputTXT={setInputTxt}
-                    outputTxt={output}
-                    warnings={warnings}
-                />
+                <IO inputTxt={inputTxt} setInputTXT={setInputTxt} outputTxt={output} />
+            </div>
+            <div className={styles.warnings}>
+                <WarningsView warnings={warnings} />
             </div>
             <div className={styles.footer}>
                 <Footer />

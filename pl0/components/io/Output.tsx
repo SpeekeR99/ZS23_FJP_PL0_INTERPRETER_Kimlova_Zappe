@@ -10,15 +10,11 @@ type InputProps = {
 
 export function Output(props: InputProps) {
     return (
-        <div>
-            Výstup:
-            <textarea
-                style={{ width: '100%' }}
-                rows={10}
-                value={props.outputTxt}
-                onChange={() => {}}
-                readOnly={true}
-            />
-        </div>
+        <textarea
+            style={{ width: '100%', flexGrow: 1 }}
+            value={props.outputTxt}
+            onChange={() => {}}
+            readOnly={true}
+        />
     );
 }

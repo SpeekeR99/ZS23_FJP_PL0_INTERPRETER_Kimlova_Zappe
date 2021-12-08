@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Heap, Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
+import { HeaderWrapper } from '../general/HeaderWrapper';
 import { Wrapper } from '../general/Wrapper';
 import { HeapVisualisation } from './HeapVisualisation';
 
@@ -15,11 +16,8 @@ export function Heap(props: HeapProps) {
     }
 
     return (
-        <Wrapper>
-            <div className="panel">
-                Heap: <br />
-                <HeapVisualisation heap={props.heap} />
-            </div>
-        </Wrapper>
+        <HeaderWrapper header={'Halda'}>
+            <HeapVisualisation heap={props.heap} />
+        </HeaderWrapper>
     );
 }

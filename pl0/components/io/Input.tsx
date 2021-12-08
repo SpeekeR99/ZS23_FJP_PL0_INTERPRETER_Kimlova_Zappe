@@ -15,14 +15,11 @@ export function Input(props: InputProps) {
     }
 
     return (
-        <div>
-            Vstup:
-            <input
-                style={{ width: '100%' }}
-                type="text"
-                value={props.inputTxt}
-                onChange={handleChange}
-            />
-        </div>
+        <input
+            style={{ width: '100%' }}
+            type="text"
+            value={props.inputTxt}
+            onChange={handleChange}
+        />
     );
 }

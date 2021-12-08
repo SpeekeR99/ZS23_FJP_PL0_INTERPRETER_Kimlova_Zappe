@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
+import { HeaderWrapper } from '../general/HeaderWrapper';
 import { Wrapper } from '../general/Wrapper';
 import { StackFrameView } from './StackFrameView';
 import { StackSplitter } from './StackSplitter';
@@ -18,12 +19,18 @@ export function Stack(props: StackProps) {
     }
 
     return (
-        <Wrapper>
-            <div className="panel">
-                Stack: <br />
-                SP: {props.sp}
-                <br />
-                Báze: {props.base}
+        <HeaderWrapper header={'Zásobník'}>
+            <>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-evenly',
+                    }}
+                >
+                    <div>SP: {props.sp}</div>
+                    <div>Báze: {props.base}</div>
+                </div>
                 <hr />
                 {TransformStackFrames(props.stack).map((sf, index) => (
                     <>
@@ -38,7 +45,7 @@ export function Stack(props: StackProps) {
                         )}
                     </>
                 ))}
-            </div>
-        </Wrapper>
+            </>
+        </HeaderWrapper>
     );
 }
