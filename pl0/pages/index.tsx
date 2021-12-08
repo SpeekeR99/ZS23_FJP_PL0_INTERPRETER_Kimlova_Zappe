@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/layout.module.css';
 import * as core from '../core/index';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     DataModel,
     Instruction,
@@ -18,6 +18,7 @@ import { Stack } from '../components/stack';
 import { Button } from 'react-bootstrap';
 import { Heap } from '../components/heap';
 import { Footer } from '../components/footer';
+import { ExplainInstruction } from '../core/explainer';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -31,6 +32,17 @@ const Home: NextPage = () => {
     const [validationErrors, setValidationErrors] = useState<PreprocessingError[]>([]);
 
     const [isEnd, setIsEnd] = useState(false);
+
+    useEffect(() => {
+        if (!model) {
+            return;
+        }
+        let shouldUpdate: boolean = !instructions[model.pc].explanation;
+        explainNextInstruction();
+        if (shouldUpdate) {
+            setVersion(version + 1);
+        }
+    }, [model, version]);
 
     function instructionsLoaded(
         instructions: Instruction[],
@@ -53,6 +65,8 @@ const Home: NextPage = () => {
 
         models.push(JSON.parse(JSON.stringify(m)));
         setModel({ ...m });
+
+        explainNextInstruction();
     }
     function play() {
         let result = nextStep();
@@ -60,6 +74,16 @@ const Home: NextPage = () => {
         while (result && !result.isEnd) {
             result = nextStep();
         }
+    }
+    function getNextStepParameters(): InstructionStepParameters | null {
+        if (!model) {
+            return null;
+        }
+        return {
+            model,
+            instructions,
+            input: '',
+        };
     }
     function nextStep() {
         models.push(JSON.parse(JSON.stringify(model)));
@@ -71,18 +95,17 @@ const Home: NextPage = () => {
             }
 
             model.input = inputTxt;
-
-            const pars: InstructionStepParameters = {
-                model,
-                instructions,
-                input: '',
-            };
+            const pars: InstructionStepParameters | null = getNextStepParameters();
+            if (!pars) {
+                return;
+            }
 
             result = core.Operations.NextStep(pars);
 
             setIsEnd(result.isEnd);
 
             setInputTxt(result.inputNextStep);
+            explainNextInstruction();
         } catch (e) {
             alert((e as Error).message);
         }
@@ -96,6 +119,23 @@ const Home: NextPage = () => {
         setModel(models[models.length - 1]);
         setIsEnd(false);
         models.pop();
+    }
+
+    function explainNextInstruction() {
+        console.log('explain called');
+        if (isEnd || !model || model.pc >= instructions.length) return;
+
+        const pars: InstructionStepParameters | null = getNextStepParameters();
+        if (!pars) {
+            return;
+        }
+
+        console.log(model.pc);
+
+        const explanation = ExplainInstruction(pars);
+        instructions[model.pc].explanation = explanation;
+
+        console.log(instructions);
     }
 
     return (

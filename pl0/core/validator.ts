@@ -128,6 +128,7 @@ export function ParseAndValidate(input: string): ValidationResult {
             instruction: stringInstructionMap.get(op.toUpperCase()),
             level: level,
             parameter: parameter,
+            explanation: null,
         };
         instructions.push(instruction);
     }
@@ -296,7 +297,6 @@ export function ParseAndValidate(input: string): ValidationResult {
     if (!parseOK) {
         instructions = [];
     }
-
 
     return {
         emptyInput: false,
