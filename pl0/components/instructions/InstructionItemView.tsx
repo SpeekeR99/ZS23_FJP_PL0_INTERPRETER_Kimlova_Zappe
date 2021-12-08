@@ -26,7 +26,8 @@ export function InstructionItemView(props: InstructionItemViewProps) {
             <td>{props.instruction.parameter}</td>
             <td>
                 <InstructionExplanation
-                    explanation={props.instruction.explanation ?? null}
+                    explanationParts={props.instruction.explanationParts ?? []}
+                    isNext={props.isNext}
                 />
             </td>
         </tr>

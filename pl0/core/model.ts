@@ -1,3 +1,4 @@
+import { ExplanationMessagePart } from './highlighting';
 import { Explanation } from './explainer';
 // ------------------------------------------- INTERFACES
 
@@ -82,7 +83,7 @@ export interface Instruction {
     instruction: InstructionType;
     level: number;
     parameter: number;
-    explanation?: Explanation | null;
+    explanationParts: ExplanationMessagePart[] | null;
 }
 
 export interface InstructionStepParameters {

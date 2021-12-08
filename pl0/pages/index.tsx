@@ -23,6 +23,7 @@ import { ExplainInstruction } from '../core/explainer';
 import { IO } from '../components/io';
 import { WarningsView } from '../components/io/Warnings';
 import { ControlPanel } from '../components/controlpanel';
+import { SplitExplanationMessageParts, StackToBeHighlighted } from '../core/highlighting';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -45,7 +46,8 @@ const Home: NextPage = () => {
         if (!model) {
             return;
         }
-        let shouldUpdate: boolean = !instructions[model.pc].explanation;
+        let shouldUpdate: boolean = !instructions[model.pc].explanationParts;
+
         explainNextInstruction();
         if (shouldUpdate) {
             setVersion(version + 1);
@@ -159,13 +161,18 @@ const Home: NextPage = () => {
         }
 
         const explanation = ExplainInstruction(pars);
-        instructions[model.pc].explanation = explanation;
+        const parseParts = SplitExplanationMessageParts(
+            explanation.message,
+            explanation.placeholders
+        );
+        instructions[model.pc].explanationParts = parseParts;
     }
 
     function resetInstructionsExplanations() {
         for (const instruction of instructions) {
-            instruction.explanation = null;
+            instruction.explanationParts = [];
         }
+        setVersion(version + 1);
     }
 
     return (
@@ -197,7 +204,18 @@ const Home: NextPage = () => {
                 />
             </div>
             <div className={styles.stack}>
-                <Stack sp={model?.sp} stack={model?.stack} base={model?.base} />
+                <Stack
+                    sp={model?.sp}
+                    stack={model?.stack}
+                    base={model?.base}
+                    stackToBeHighlighed={
+                        model == null
+                            ? new Map<number, string>()
+                            : StackToBeHighlighted(
+                                  instructions[model?.pc ?? 0].explanationParts
+                              )
+                    }
+                />
             </div>
             <div className={styles.heap}>
                 <Heap heap={model?.heap} />

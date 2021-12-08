@@ -17,6 +17,7 @@ export function HeapBlockVisualisation(props: HeapBlockVisualisationProps) {
             {[...Array(props.heapblock.size)].map((e, i) => {
                 return (
                     <div
+                        key={props.heapblock.index + i}
                         className={`${styles.heapCell} ${
                             props.heapblock.empty
                                 ? styles.heapCellEmpty

@@ -10,6 +10,8 @@ type StackFrameValueProps = {
     stackFrame: UIStackFrame;
     sp: number;
     value: StackItem;
+
+    stackToBeHighlighed: Map<number, string>;
 };
 function addAlpha(color: string, opacity: number): string {
     // coerce values so ti is between 0 and 1.
@@ -30,7 +32,15 @@ function getTextColor(bg: string) {
 export function StackFrameValue(props: StackFrameValueProps) {
     const isSF = props.stackFrame.isStackFrame;
     const isSFHeader = isSF && props.orderInStackFrame < 3;
-    const valueBackground = isSFHeader
+
+    const isHighlighted = props.stackToBeHighlighed.has(props.rowIndex);
+    const hightlighColor = isHighlighted
+        ? props.stackToBeHighlighed.get(props.rowIndex)
+        : null;
+
+    const valueBackground = isHighlighted
+        ? hightlighColor
+        : isSFHeader
         ? addAlpha(props.stackFrame.color, 0.8)
         : isSF
         ? addAlpha(props.stackFrame.color, 0.5)

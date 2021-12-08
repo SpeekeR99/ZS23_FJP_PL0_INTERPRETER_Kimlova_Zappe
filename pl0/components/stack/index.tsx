@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { ExplanationMessagePart } from '../../core/highlighting';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
 import { HeaderWrapper } from '../general/HeaderWrapper';
@@ -11,6 +12,8 @@ type StackProps = {
     stack?: Stack;
     sp?: number;
     base?: number;
+
+    stackToBeHighlighed: Map<number, string>;
 };
 
 export function Stack(props: StackProps) {
@@ -33,17 +36,18 @@ export function Stack(props: StackProps) {
                 </div>
                 <hr />
                 {TransformStackFrames(props.stack).map((sf, index) => (
-                    <>
+                    <div key={index}>
                         <StackFrameView
                             firstIndex={sf.startIndex}
                             stackFrame={sf}
                             sp={props.sp ?? 0}
                             key={index}
+                            stackToBeHighlighed={props.stackToBeHighlighed}
                         />
                         {sf.startIndex + sf.values.length == (props.sp ?? -1) + 1 && (
                             <StackSplitter />
                         )}
-                    </>
+                    </div>
                 ))}
             </>
         </HeaderWrapper>

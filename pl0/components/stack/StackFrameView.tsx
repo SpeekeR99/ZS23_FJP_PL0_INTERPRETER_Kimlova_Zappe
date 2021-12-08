@@ -9,6 +9,8 @@ type StackFrameViewProps = {
     stackFrame: UIStackFrame;
     firstIndex: number;
     sp: number;
+
+    stackToBeHighlighed: Map<number, string>;
 };
 
 export function StackFrameView(props: StackFrameViewProps) {
@@ -31,6 +33,7 @@ export function StackFrameView(props: StackFrameViewProps) {
                     sp={props.sp}
                     rowIndex={props.firstIndex + key}
                     key={key}
+                    stackToBeHighlighed={props.stackToBeHighlighed}
                 />
             ))}
         </div>
