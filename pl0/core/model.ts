@@ -284,8 +284,16 @@ function GetValuesFromStack(
     let retvals: number[] = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
-            throw new Error('Pokus o přístup na zásobník záporným indexem');
+            throw new Error('Pokus o přístup pod zásobník');
         }
+
+        if (index >= stack.stackItems.length) {
+            let toAdd = index - stack.stackItems.length;
+            for (let i = 0; i < toAdd; i++) {
+                stack.stackItems.push({ value: 0 });
+            }
+        }
+
         retvals.push(stack.stackItems[index - i].value);
         if (decrementCurrentFrame) {
             stack.stackFrames[stack.stackFrames.length - 1].size--;
@@ -600,11 +608,23 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
 
 function PerformINT(stack: Stack, sp: number, count: number) {
     let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-    for (let i = 0; i < count; i++) {
-        sp++;
-        currentStackFrame.size++;
-        if (sp > stack.stackItems.length - 1) {
+
+    if (count >= 0) {
+        sp += count;
+        currentStackFrame.size += count;
+        let toAdd =
+            currentStackFrame.index + currentStackFrame.size - stack.stackItems.length;
+        for (let i = 0; i < toAdd; i++) {
             stack.stackItems.push({ value: 0 });
+        }
+    } else {
+        if (sp + count < -1) {
+            throw new Error('Snížení vrcholu zásobníku pod -1');
+        } else if (sp + count < currentStackFrame.index) {
+            throw new Error('Snížení vrcholu zásobníku pod aktuální rámec');
+        } else {
+            sp += count;
+            currentStackFrame.size += count;
         }
     }
 

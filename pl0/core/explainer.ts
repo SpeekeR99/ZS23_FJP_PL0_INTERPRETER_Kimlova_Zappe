@@ -472,6 +472,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.LOD:
             let bases = FindBaseDummy(stack, params.model.base, level);
+            console.log('bases: ' + bases);
             if (bases[0] == -1) {
                 explanation.message =
                     'Level je příliš velký - statická báze by musela být pod prvním rámcem';
@@ -913,7 +914,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 explanation.message =
                     'Hodnota na vrcholu zásobníku je %1, skok nebude proveden a následující instrukce neexistuje';
             }
-        } else {
+        } else if (op != InstructionType.CAL && op != InstructionType.JMP) {
             explanation = { placeholders: [], message: 'Další instrukce neexistuje' };
         }
     }
