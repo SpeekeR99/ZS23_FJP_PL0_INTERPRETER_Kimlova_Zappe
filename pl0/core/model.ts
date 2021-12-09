@@ -1,7 +1,7 @@
 import { ExplanationMessagePart } from './highlighting';
 import { Explanation } from './explainer';
 
-import { Allocate, Free } from './allocator';
+import { Allocate, Free, GetValueFromHeap, PutValueOnHeap } from './allocator';
 
 // ------------------------------------------- INTERFACES
 
@@ -113,52 +113,6 @@ export enum EmulationState {
 // ------------------------------------------- INTERFACES
 
 // ------------------------------------------- HEAP UTILITY FUNCTIONS
-
-function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        let heapBlock = heap.blocks[i];
-        if (
-            heapBlock.index <= address &&
-            address <= heapBlock.index + heapBlock.size - 1
-        ) {
-            return heapBlock;
-        }
-    }
-
-    return { size: 0, values: [], empty: true, index: -1 };
-}
-
-function PutValueOnHeap(heap: Heap, address: number, value: number) {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.index == -1) {
-        throw new Error(
-            'Přístup do paměti na nedefinovaném indexu ' +
-                address +
-                ', velikost paměti = ' +
-                heap.size
-        );
-    } else if (heapBlock.empty) {
-        throw new Error('Přístup do nealokované paměti indexem ' + address);
-    } else {
-        heapBlock.values[address - heapBlock.index] = value;
-    }
-}
-
-function GetValueFromHeap(heap: Heap, address: number): number {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.index == -1) {
-        throw new Error(
-            'Přístup do paměti na nedefinovaném indexu ' +
-                address +
-                ', velikost paměti = ' +
-                heap.size
-        );
-    } else if (heapBlock.empty) {
-        throw new Error('Přístup do nealokované paměti indexem ' + address);
-    } else {
-        return heapBlock.values[address - heapBlock.index];
-    }
-}
 
 // ------------------------------------------- HEAP UTILITY FUNCTIONS
 
@@ -467,22 +421,47 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var addr = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
             params.model.pc++;
-            Free(heap, addr[0]);
+            if (Free(heap, addr[0]) != 0) {
+                throw new Error(
+                    'Na adrese ' + addr + ' nezačíná žádný alokovaný blok paměti'
+                );
+            }
             break;
         case InstructionType.LDA:
             var addr: number[] = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
+            var val = GetValueFromHeap(heap, addr[0]);
+            if (val === null) {
+                throw new Error(
+                    'Přístup do paměti na nedefinovaném indexu ' +
+                        addr[0] +
+                        ', velikost paměti = ' +
+                        heap.size
+                );
+            } else if (Number.isNaN(val)) {
+                throw new Error('Přístup do nealokované paměti indexem ' + addr[0]);
+            }
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
-                ConvertToStackItems(GetValueFromHeap(heap, addr[0]))
+                ConvertToStackItems(val)
             );
             params.model.pc++;
             break;
         case InstructionType.STA:
             var addr: number[] = GetValuesFromStack(stack, params.model.sp, 2);
             params.model.sp -= 2;
-            PutValueOnHeap(heap, addr[1], addr[0]);
+            var r = PutValueOnHeap(heap, addr[1], addr[0]);
+            if (r == -1) {
+                throw new Error(
+                    'Přístup do paměti na nedefinovaném indexu ' +
+                        addr[1] +
+                        ', velikost paměti = ' +
+                        heap.size
+                );
+            } else if (r == -2) {
+                throw new Error('Přístup do nealokované paměti indexem ' + addr[0]);
+            }
             params.model.pc++;
             break;
         case InstructionType.PLD:

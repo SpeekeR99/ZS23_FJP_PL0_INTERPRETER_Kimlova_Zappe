@@ -1,13 +1,16 @@
 import type { Heap } from './model';
 import type { HeapBlock } from './model';
 
-// ----------------------------------------------------------------------------------------------------------------
-//  Allocate(heap, count) - allocate count memory cells on heap, return -1 if impossible to allocate or first cell index
-//  AllocateDummy(heap, count) - same as above but dont actually allocate it, just return the result (for visualisaiton)
-//  Free(heap, address) - free the memory given address and heap
-//  FreeDummy(heap, address) - same as above but just a simulation
-// ----------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+//    FUNCTIONS THAT HAVE TO BE IMPLEMENTED
+// -------------------------------------------------------------------------
 
+/**
+ * Allocates continuous block of specified size on heap
+ * @param heap heap
+ * @param count size
+ * @returns index of the first allocated cell or -1 if the allocation failed
+ */
 export function Allocate(heap: Heap, count: number): number {
     for (let i = 0; i < heap.blocks.length; i++) {
         if (!heap.blocks[i].empty) {
@@ -45,7 +48,13 @@ export function Allocate(heap: Heap, count: number): number {
     return -1;
 }
 
-export function Free(heap: Heap, address: number) {
+/**
+ * Given address, free it
+ * @param heap heap
+ * @param address address
+ * @returns 0 on success, -1 on failure
+ */
+export function Free(heap: Heap, address: number): number {
     // Find the address
     for (let i = 0; i < heap.blocks.length; i++) {
         if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
@@ -105,14 +114,20 @@ export function Free(heap: Heap, address: number) {
             }
 
             heap.blocks = resultBlocks;
-            return;
+            return 0;
         }
     }
 
     // do warning, not fatal
-    throw new Error('Na adrese ' + address + ' nezačíná žádný alokovaný blok paměti');
+    return -1;
 }
 
+/**
+ * Simulate allocation of block given size
+ * @param heap heap
+ * @param count size
+ * @returns first allocated cell index on success or -1 on failure
+ */
 export function AllocateDummy(heap: Heap, count: number): number {
     for (let i = 0; i < heap.blocks.length; i++) {
         if (!heap.blocks[i].empty) {
@@ -128,6 +143,12 @@ export function AllocateDummy(heap: Heap, count: number): number {
     return -1;
 }
 
+/**
+ * Simulate free of an address
+ * @param heap heap
+ * @param address address
+ * @returns number of freed cells on success or -1 on failure
+ */
 export function FreeDummy(heap: Heap, address: number): HeapBlock {
     // Find the address
     for (let i = 0; i < heap.blocks.length; i++) {
@@ -139,6 +160,95 @@ export function FreeDummy(heap: Heap, address: number): HeapBlock {
 
     // do warning, not fatal
     return { size: -1, index: address, empty: true, values: [] };
+}
+
+/**
+ * Given heap and address, return the value stored on heap
+ * @param heap heap
+ * @param address address
+ * @returns value stored on success, null on out-of-bounds access and NaN on unallocated memory access
+ */
+export function GetValueFromHeap(heap: Heap, address: number): number | null {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (heapBlock.index == -1) {
+        return null;
+    } else if (heapBlock.empty) {
+        return NaN;
+    } else {
+        return heapBlock.values[address - heapBlock.index];
+    }
+}
+
+/**
+ * Given heap, address and value, store the value on the address
+ * @param heap heap
+ * @param address address
+ * @param value value
+ * @returns 0 on success, -1 on undefined index (larger than heap max size), -2 on unallocated memory access
+ */
+export function PutValueOnHeap(heap: Heap, address: number, value: number): number {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (heapBlock.index == -1) {
+        return -1;
+    } else if (heapBlock.empty) {
+        return -2;
+    } else {
+        heapBlock.values[address - heapBlock.index] = value;
+        return 0;
+    }
+}
+
+/**
+ * Given heap and address, return the value stored on heap
+ * @param heap heap
+ * @param address address
+ * @returns value stored on success, null on out-of-bounds and NaN on unallocated memory access
+ */
+export function GetValueFromHeapDummy(heap: Heap, address: number): number | null {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (address > heap.size - 1) {
+        return null;
+    } else if (heapBlock.empty) {
+        return NaN;
+    } else {
+        return heapBlock.values[address - heapBlock.index];
+    }
+}
+
+/**
+ * Given heap, address and value, simulate storing the value on the address
+ * @param heap heap
+ * @param address address
+ * @param value value
+ * @returns 0 on success, -1 on undefined index (larger than heap max size), -2 on unallocated memory access
+ */
+export function PutValueOnHeapDummy(heap: Heap, address: number) {
+    let heapBlock = FindHeapBlockGivenAddress(heap, address);
+    if (heapBlock.index == -1) {
+        return -1;
+    } else if (heapBlock.empty) {
+        return -2;
+    } else {
+        return 0;
+    }
+}
+
+// -------------------------------------------------------------------------
+//  UTILITY
+// -------------------------------------------------------------------------
+
+function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
+    for (let i = 0; i < heap.blocks.length; i++) {
+        let heapBlock = heap.blocks[i];
+        if (
+            heapBlock.index <= address &&
+            address <= heapBlock.index + heapBlock.size - 1
+        ) {
+            return heapBlock;
+        }
+    }
+
+    return { size: 0, values: [], empty: true, index: -1 };
 }
 
 function CreateArray(size: number, value: number = 0): number[] {

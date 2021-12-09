@@ -11,6 +11,13 @@ import {
     OperationType,
 } from './model';
 
+import {
+    FreeDummy,
+    AllocateDummy,
+    GetValueFromHeapDummy,
+    PutValueOnHeapDummy,
+} from './allocator';
+
 // ------------------------------------------- INTERFACES
 
 export interface Explanation {
@@ -51,70 +58,6 @@ export enum HighlightType {
 }
 
 // ------------------------------------------- INTERFACES
-
-// ------------------------------------------- HEAP UTILITY FUNCTIONS
-
-function AllocateBlockFirstFitDummy(heap: Heap, count: number): number {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (!heap.blocks[i].empty) {
-            continue;
-        }
-        if (heap.blocks[i].size > count) {
-            return heap.blocks[i].index;
-        } else if (heap.blocks[i].size == count) {
-            return heap.blocks[i].index;
-        }
-    }
-    // No empty space found
-    return -1;
-}
-
-function FreeHeapBlockDummy(heap: Heap, address: number): HeapBlock {
-    // Find the address
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
-            // The block to deallocate
-            return heap.blocks[i];
-        }
-    }
-
-    // do warning, not fatal
-    return { size: -1, index: address, empty: true, values: [] };
-}
-
-function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        let heapBlock = heap.blocks[i];
-        if (
-            heapBlock.index <= address &&
-            address <= heapBlock.index + heapBlock.size - 1
-        ) {
-            return heapBlock;
-        }
-    }
-
-    return { size: 0, values: [], empty: true, index: -1 };
-}
-
-function PutValueOnHeap(heap: Heap, address: number, value: number) {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.empty) {
-        return NaN;
-    } else {
-        return address;
-    }
-}
-
-function GetValueFromHeap(heap: Heap, address: number): number {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.empty) {
-        return NaN;
-    } else {
-        return heapBlock.values[address - heapBlock.index];
-    }
-}
-
-// ------------------------------------------- HEAP UTILITY FUNCTIONS
 
 // ------------------------------------------- STACK UTILITY FUNCTIONS
 
@@ -638,7 +581,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 explanation.message =
                     'Pokus o alokaci %1 buněk haldy, což není validní počet - na vrchol se přidá -1';
             } else {
-                let res = AllocateBlockFirstFitDummy(heap, count);
+                let res = AllocateDummy(heap, count);
                 if (res == -1) {
                     explanation.message =
                         'Pokus o alokaci %1 buněk haldy, ale není dostatečně velký volný blok - na vrchol se přidá -1';
@@ -665,9 +608,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.DEL:
             var addr = stack.stackItems[params.model.sp].value;
-            let block = FreeHeapBlockDummy(heap, addr);
+            let block = FreeDummy(heap, addr);
 
-            if (block.index == -1) {
+            if (block.size == -1) {
                 explanation.message = 'Na indexu %1 nezačíná žádný alokovaný blok';
                 explanation.placeholders.push({
                     placeholder: '1',
@@ -730,8 +673,10 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             if (addr < 0 || addr >= heap.size) {
                 explanation.message = 'Adresa %1 je mimo rozsah haldy';
             } else {
-                let res = GetValueFromHeap(heap, addr);
-                if (Number.isNaN(res)) {
+                let res = GetValueFromHeapDummy(heap, addr);
+                if (res === null) {
+                    explanation.message = 'Adresa %1 je mimo rozsah haldy';
+                } else if (Number.isNaN(res)) {
                     explanation.message = 'Adresa %1 není alokovaná';
                     explanation.placeholders[0].highlightType = HighlightType.BACKGROUND;
                     explanation.placeholders[0].heap.push(addr);
@@ -751,9 +696,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
             var addr = stack.stackItems[params.model.sp - 1].value;
             var val = stack.stackItems[params.model.sp].value;
-            var temp = PutValueOnHeap(heap, addr, val);
+            var temp = PutValueOnHeapDummy(heap, addr);
 
-            if (Number.isNaN(temp)) {
+            if (temp == -2) {
                 explanation.message = 'Přístup do paměti na nealokovanou adresu %1';
                 explanation.placeholders.push({
                     placeholder: '1',
@@ -767,6 +712,8 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                     input: false,
                     highlightType: HighlightType.BACKGROUND,
                 });
+            } else if (temp == -1) {
+                explanation.message = 'Přístup na adresu mimo rozsah haldy';
             } else {
                 explanation.message = 'Uložení hodnoty %1 na adresu %2 v haldě';
                 explanation.placeholders.push({
