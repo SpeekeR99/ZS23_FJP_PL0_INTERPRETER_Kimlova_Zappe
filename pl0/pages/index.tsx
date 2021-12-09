@@ -100,7 +100,7 @@ const Home: NextPage = () => {
         return {
             model,
             instructions,
-            input: '',
+            input: inputTxt,
         };
     }
     function nextStep() {

@@ -1,6 +1,6 @@
 import { Placeholder, HighlightType } from './explainer';
 
-export const hightlightColors: string[] = ['#FFC482', '#E2B6CE', '#A4F9C8'];
+export const hightlightColors: string[] = ['#FFC482', '#E2B6CE', '#A4F9C8', '#b6f7fc'];
 
 export interface ExplanationMessagePart {
     content: string;

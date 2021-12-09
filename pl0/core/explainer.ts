@@ -31,6 +31,8 @@ export interface Placeholder {
     // Which instructions to highlight
     instructions: number[];
 
+    //base: boolean;
+
     // Whether or not to highlight the LEVEL in instruction GUI
     level: boolean;
     // Whether or not to highlight the PARAMETER in instruction GUI
@@ -128,9 +130,9 @@ function GetValuesFromStack(
             throw new Error('Pokus o přístup na zásobník záporným indexem');
         }
         retvals.push(stack.stackItems[index - i].value);
-        if (decrementCurrentFrame) {
+        /*if (decrementCurrentFrame) {
             stack.stackFrames[stack.stackFrames.length - 1].size--;
-        }
+        }*/
     }
     return retvals;
 }
@@ -531,7 +533,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 placeholder: '1',
                 value: stack.stackItems[params.model.sp].value,
                 heap: [],
-                stack: [address],
+                stack: [params.model.sp],
                 instructions: [],
                 level: false,
                 parameter: false,
@@ -791,8 +793,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
 
             explanation.message =
-                'Načte hodnotu z levelu %1 adresy %2 zásobníku (index ' +
-                (bases[bases.length - 1] + values[0]) +
+                'Načte hodnotu z levelu %1 adresy %2 zásobníku (index %3' +
                 ', hodnota ' +
                 stack.stackItems[bases[bases.length - 1] + values[0]].value +
                 ') a přidá ji na vrchol';
@@ -824,6 +825,18 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 input: false,
                 highlightType: HighlightType.BOLD,
             });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[bases[bases.length - 1] + values[0]].value,
+                heap: [],
+                stack: [bases[bases.length - 1] + values[0]],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
             break;
         case InstructionType.PST: // TODO PST
             var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
@@ -835,9 +848,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
 
             explanation.message =
-                'Uloží hodnotu na vrcholu zásobníku (%1) na level %2 adresu %3 zásobníku (index ' +
-                (bases[bases.length - 1] + values[2]) +
-                ')';
+                'Uloží hodnotu %1 na level %2 adresu %3 zásobníku (index %4)';
 
             explanation.placeholders.push({
                 placeholder: '1',
@@ -878,9 +889,33 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 input: false,
                 highlightType: HighlightType.BOLD,
             });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: bases[bases.length - 1] + values[0],
+                heap: [],
+                stack: [bases[bases.length - 1] + values[0]],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
             break;
         default:
             throw new Error('Neznámá instrukce ' + InstructionType[op]);
+    }
+
+    if (params.model.pc + 1 >= params.instructions.length) {
+        if (op == InstructionType.JMC) {
+            if (stack.stackItems[params.model.sp].value != 0) {
+                explanation.message =
+                    'Hodnota na vrcholu zásobníku je %1, skok nebude proveden a následující instrukce neexistuje';
+            }
+        } else {
+            explanation = { placeholders: [], message: 'Další instrukce neexistuje' };
+        }
     }
 
     return explanation;

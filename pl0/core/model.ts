@@ -379,6 +379,10 @@ function FindBase(stack: Stack, base: number, level: number): number {
 // ------------------------------------------- INSTRUCTION FUNCTIONS
 
 export function DoStep(params: InstructionStepParameters): InstructionStepResult {
+    if (params.model.pc >= params.instructions.length) {
+        throw new Error('Neexistující instrukce');
+    }
+
     let instruction = params.instructions[params.model.pc];
     let op = instruction.instruction;
     let level = instruction.level;
@@ -390,7 +394,6 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
     let inputString = params.input;
     let warnings: string[] = [];
     let isEnd = false;
-    let outputString = '';
 
     switch (op) {
         case InstructionType.LIT:
@@ -502,7 +505,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 throw new Error('Na vrcholu zásobníku je hodnota mimo interval <0, 255>');
             }
 
-            outputString = String.fromCharCode(code[0]);
+            params.model.output += String.fromCharCode(code[0]);
             inputString = inputString.substring(1);
             params.model.sp--;
             params.model.pc++;
@@ -590,7 +593,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
     return {
         warnings: warnings,
         isEnd: isEnd,
-        output: outputString,
+        output: params.model.output,
         inputNextStep: inputString,
     };
 }
