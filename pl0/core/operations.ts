@@ -16,7 +16,7 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
 
         stack: {
             maxSize: stackMaxSize,
-            stackItems: [],
+            stackItems: [{ value: 0 }, { value: 0 }, { value: 0 }],
             stackFrames: [{ index: 0, size: 0 }],
         },
 

@@ -284,22 +284,46 @@ function GetValuesFromStack(
     let retvals: number[] = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
-            throw new Error('Pokus o přístup pod zásobník');
+            throw new Error('Pokus o přístup na zásobník záporným indexem');
         }
-
-        if (index >= stack.stackItems.length) {
-            let toAdd = index - stack.stackItems.length;
-            for (let i = 0; i < toAdd; i++) {
-                stack.stackItems.push({ value: 0 });
-            }
-        }
-
         retvals.push(stack.stackItems[index - i].value);
         if (decrementCurrentFrame) {
             stack.stackFrames[stack.stackFrames.length - 1].size--;
         }
     }
     return retvals;
+}
+
+function GetValueFromStack(stack: Stack, index: number): number {
+    if (index >= stack.stackItems.length) {
+        while (stack.stackItems.length - 1 != index) {
+            stack.stackItems.push({ value: 0 });
+            if (stack.stackItems.length > stack.maxSize) {
+                throw new Error('Překročena maximální velikost zásobníku');
+            }
+        }
+        return 0;
+    } else {
+        return stack.stackItems[index].value;
+    }
+}
+
+function PutOntoStack(stack: Stack, index: number, value: number) {
+    if (index >= stack.stackItems.length) {
+        while (stack.stackItems.length - 1 != index) {
+            stack.stackItems.push({ value: 0 });
+        }
+    }
+
+    if (index < 0) {
+        throw new Error('Pokus o vložení na záporný index zásobníku');
+    }
+
+    if (stack.stackItems.length > stack.maxSize) {
+        throw new Error('Překročena maximální velikost zásobníku');
+    }
+
+    stack.stackItems[index].value = value;
 }
 
 function ConvertToStackItems(...values: number[]) {
@@ -494,7 +518,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
-                ConvertToStackItems(stack.stackItems[address].value)
+                ConvertToStackItems(GetValueFromStack(stack, address))
             );
             params.model.pc++;
             break;
@@ -502,7 +526,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var base = FindBase(stack, params.model.base, level);
             var address = base + parameter;
             var res = GetValuesFromStack(stack, params.model.sp, 1);
-            stack.stackItems[address].value = res[0];
+            PutOntoStack(stack, address, res[0]);
             params.model.sp--;
             params.model.pc++;
             break;
@@ -579,7 +603,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
-                ConvertToStackItems(stack.stackItems[base + values[0]].value)
+                ConvertToStackItems(GetValueFromStack(stack, base + values[0]))
             );
             params.model.pc++;
             break;
@@ -587,7 +611,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
             params.model.sp -= 3;
             var base = FindBase(stack, params.model.base, values[1]);
-            stack.stackItems[base + values[0]].value = values[2];
+            PutOntoStack(stack, base + values[0], values[2]);
             params.model.pc++;
             break;
         default:
@@ -608,20 +632,18 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
 
 function PerformINT(stack: Stack, sp: number, count: number) {
     let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-
     if (count >= 0) {
         sp += count;
         currentStackFrame.size += count;
-        let toAdd =
-            currentStackFrame.index + currentStackFrame.size - stack.stackItems.length;
+        let toAdd = sp - stack.stackItems.length + 1;
         for (let i = 0; i < toAdd; i++) {
             stack.stackItems.push({ value: 0 });
         }
     } else {
         if (sp + count < -1) {
-            throw new Error('Snížení vrcholu zásobníku pod -1');
+            throw new Error('Pokus o snížení SP na -2');
         } else if (sp + count < currentStackFrame.index) {
-            throw new Error('Snížení vrcholu zásobníku pod aktuální rámec');
+            throw new Error('Pokus o snížení SP pod aktuální stack frame');
         } else {
             sp += count;
             currentStackFrame.size += count;

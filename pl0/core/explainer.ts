@@ -472,7 +472,6 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.LOD:
             let bases = FindBaseDummy(stack, params.model.base, level);
-            console.log('bases: ' + bases);
             if (bases[0] == -1) {
                 explanation.message =
                     'Level je příliš velký - statická báze by musela být pod prvním rámcem';
@@ -481,11 +480,18 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
             var address = bases[bases.length - 1] + parameter;
 
+            let tmp;
+            if (address > stack.stackItems.length - 1) {
+                tmp = 0;
+            } else {
+                tmp = stack.stackItems[address].value;
+            }
+
             explanation.message =
                 'Načte hodnotu z levelu %1 adresy %2 zásobníku (index ' +
                 address +
                 ', hodnota ' +
-                stack.stackItems[address].value +
+                tmp +
                 ') a přidá ji na vrchol';
             explanation.placeholders.push({
                 placeholder: '1',
@@ -525,6 +531,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
 
             var address = bases[bases.length - 1] + parameter;
+
+            if (address < 0) {
+                explanation.message = 'Pokus o uložení pod zásobník';
+                break;
+            }
 
             explanation.message =
                 'Uloží hodnotu na vrcholu zásobníku (%1) na level %2 adresu %3 zásobníku (index ' +
@@ -793,10 +804,16 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 break;
             }
 
+            if (bases[bases.length - 1] + values[0] > stack.stackItems.length - 1) {
+                tmp = 0;
+            } else {
+                tmp = stack.stackItems[bases[bases.length - 1] + values[0]].value;
+            }
+
             explanation.message =
                 'Načte hodnotu z levelu %1 adresy %2 zásobníku (index %3' +
                 ', hodnota ' +
-                stack.stackItems[bases[bases.length - 1] + values[0]].value +
+                tmp +
                 ') a přidá ji na vrchol';
 
             explanation.placeholders.push({
@@ -828,7 +845,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
             explanation.placeholders.push({
                 placeholder: '3',
-                value: stack.stackItems[bases[bases.length - 1] + values[0]].value,
+                value: bases[bases.length - 1] + values[0],
                 heap: [],
                 stack: [bases[bases.length - 1] + values[0]],
                 instructions: [],
@@ -914,7 +931,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 explanation.message =
                     'Hodnota na vrcholu zásobníku je %1, skok nebude proveden a následující instrukce neexistuje';
             }
-        } else if (op != InstructionType.CAL && op != InstructionType.JMP) {
+        } else if (
+            op != InstructionType.CAL &&
+            op != InstructionType.JMP &&
+            op != InstructionType.RET
+        ) {
             explanation = { placeholders: [], message: 'Další instrukce neexistuje' };
         }
     }
@@ -924,11 +945,21 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
 function PerformINT(stack: Stack, sp: number, count: number) {
     let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-    for (let i = 0; i < count; i++) {
-        sp++;
-        currentStackFrame.size++;
+
+    if (count >= 0) {
+        sp += count;
+        currentStackFrame.size += count;
         if (sp > stack.stackItems.length - 1) {
             stack.stackItems.push({ value: 0 });
+        }
+    } else {
+        if (sp + count < -1) {
+            throw new Error('Pokus o snížení SP na -2');
+        } else if (sp + count < currentStackFrame.index) {
+            throw new Error('Pokus o snížení SP pod aktuální stack frame');
+        } else {
+            sp += count;
+            currentStackFrame.size += count;
         }
     }
 
