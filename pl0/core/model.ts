@@ -1,5 +1,8 @@
 import { ExplanationMessagePart } from './highlighting';
 import { Explanation } from './explainer';
+
+import { Allocate, Free } from './allocator';
+
 // ------------------------------------------- INTERFACES
 
 import { BlockList } from 'net';
@@ -110,120 +113,6 @@ export enum EmulationState {
 // ------------------------------------------- INTERFACES
 
 // ------------------------------------------- HEAP UTILITY FUNCTIONS
-
-function CreateArray(size: number, value: number = 0): number[] {
-    let arr: number[] = [];
-    for (let i = 0; i < size; i++) {
-        arr.push(value);
-    }
-
-    return arr;
-}
-
-function AllocateBlockFirstFit(heap: Heap, count: number): number {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (!heap.blocks[i].empty) {
-            continue;
-        }
-
-        if (heap.blocks[i].size > count) {
-            let blocksAfter = heap.blocks.slice(i + 1);
-            let blocksBefore = heap.blocks.slice(0, i);
-            let fullBlock: HeapBlock = {
-                empty: false,
-                index: heap.blocks[i].index,
-                size: count,
-                values: CreateArray(count),
-            };
-            let emptyBlock: HeapBlock = {
-                empty: true,
-                index: heap.blocks[i].index + count,
-                size: heap.blocks[i].size - count,
-                values: CreateArray(heap.blocks[i].size - count),
-            };
-            blocksBefore.push(fullBlock);
-            blocksBefore.push(emptyBlock);
-            heap.blocks = blocksBefore.concat(blocksAfter);
-
-            return fullBlock.index;
-        } else if (heap.blocks[i].size == count) {
-            // Trivial case - the first block is the exact size needed
-            heap.blocks[i].empty = false;
-            return heap.blocks[i].index;
-        }
-    }
-
-    // No empty space found
-    return -1;
-}
-
-function FreeHeapBlock(heap: Heap, address: number) {
-    // Find the address
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
-            // The block to deallocate
-            let targetBlock = heap.blocks[i];
-            targetBlock.empty = true;
-
-            // @ts-ignore
-            let leftBlocks;
-            // @ts-ignore
-            let rightBlocks;
-
-            // See if the block on the left is empty - if yes, merge it
-            if (i != 0) {
-                if (heap.blocks[i - 1].empty) {
-                    let leftBlock = heap.blocks[i - 1];
-                    leftBlocks = heap.blocks.slice(0, i);
-                    leftBlocks.pop();
-                    targetBlock.size += leftBlock.size;
-                    targetBlock.index = leftBlock.index;
-                } else {
-                    leftBlocks = heap.blocks.slice(0, i);
-                }
-            } else {
-                leftBlocks = [];
-            }
-
-            if (i != heap.blocks.length - 1) {
-                if (heap.blocks[i + 1].empty) {
-                    let rightBlock = heap.blocks[i + 1];
-                    rightBlocks = heap.blocks.slice(i + 1);
-                    rightBlocks = rightBlocks.reverse();
-                    rightBlocks.pop();
-                    rightBlocks = rightBlocks.reverse();
-                    targetBlock.size += rightBlock.size;
-                } else {
-                    rightBlocks = heap.blocks.slice(i + 1);
-                }
-            } else {
-                rightBlocks = [];
-            }
-
-            let resultBlocks: HeapBlock[] = [];
-
-            if (i != 0) {
-                // @ts-ignore
-                leftBlocks.push(targetBlock);
-                // @ts-ignore
-                resultBlocks = resultBlocks.concat(leftBlocks);
-            } else {
-                resultBlocks.push(targetBlock);
-            }
-
-            if (i != heap.blocks.length - 1) {
-                // @ts-ignore
-                resultBlocks = resultBlocks.concat(rightBlocks);
-            }
-
-            heap.blocks = resultBlocks;
-            return;
-        }
-    }
-
-    // do warning, not fatal
-    throw new Error('Na adrese ' + address + ' nezačíná žádný alokovaný blok paměti');
-}
 
 function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
     for (let i = 0; i < heap.blocks.length; i++) {
@@ -569,7 +458,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 params.model.sp = PushOntoStack(
                     stack,
                     params.model.sp,
-                    ConvertToStackItems(AllocateBlockFirstFit(heap, count[0]))
+                    ConvertToStackItems(Allocate(heap, count[0]))
                 );
             }
             params.model.pc++;
@@ -578,7 +467,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var addr = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
             params.model.pc++;
-            FreeHeapBlock(heap, addr[0]);
+            Free(heap, addr[0]);
             break;
         case InstructionType.LDA:
             var addr: number[] = GetValuesFromStack(stack, params.model.sp, 1);
