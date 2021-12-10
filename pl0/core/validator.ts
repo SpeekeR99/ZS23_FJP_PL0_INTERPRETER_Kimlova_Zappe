@@ -1,5 +1,7 @@
 import { Instruction, InstructionType } from './model';
 
+import i18next from 'i18next';
+
 export interface ValidationResult {
     emptyInput: boolean;
     parseOK: boolean;
@@ -81,14 +83,14 @@ export function ParseAndValidate(input: string): ValidationResult {
             parseOK = false;
             parseErrors.push({
                 rowIndex: i,
-                error: 'Řádka obsahuje méně než 4 parametry',
+                error: i18next.t('core:validatorLessThan4'),
             });
             continue;
         } else if (splitLine.length > 4) {
             parseOK = false;
             parseErrors.push({
                 rowIndex: i,
-                error: 'Řádka obsahuje více než 4 parametry',
+                error: i18next.t('core:validatorMoreThan4'),
             });
             continue;
         }
@@ -96,25 +98,37 @@ export function ParseAndValidate(input: string): ValidationResult {
         let index = Number(splitLine[0]);
         if (Number.isNaN(index)) {
             parseOK = false;
-            parseErrors.push({ rowIndex: i, error: 'Index musí být celé číslo' });
+            parseErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorIndexInteger'),
+            });
             continue;
         }
         let level = Number(splitLine[2]);
         if (Number.isNaN(level)) {
             parseOK = false;
-            parseErrors.push({ rowIndex: i, error: 'Level (L) musí být celé číslo' });
+            parseErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorLevelInteger'),
+            });
             continue;
         }
         let parameter = Number(splitLine[3]);
         if (Number.isNaN(parameter)) {
             parseOK = false;
-            parseErrors.push({ rowIndex: i, error: 'Parametr (A) musí být celé číslo' });
+            parseErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorParInteger'),
+            });
             continue;
         }
         let op: string = splitLine[1];
         if (!stringInstructionMap.has(op.toUpperCase())) {
             parseOK = false;
-            parseErrors.push({ rowIndex: i, error: 'Neznámá instrukce' });
+            parseErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorUnkInstruction'),
+            });
             continue;
         }
 
@@ -139,31 +153,40 @@ export function ParseAndValidate(input: string): ValidationResult {
             validationOK = false;
             validationErrors.push({
                 rowIndex: i,
-                error: 'Index instrukce neodpovídá číslu řádky. Instrukce je nutné číslovat od 0.',
+                error: i18next.t('core:validatorBadIndex'),
             });
             continue;
         }
 
         if (instruction.level < 0) {
             validationOK = false;
-            validationErrors.push({ rowIndex: i, error: 'Level nemůže být záporný' });
+            validationErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorNegLevel'),
+            });
             continue;
         }
 
         if (instruction.instruction == InstructionType.LIT && instruction.level != 0) {
             validationOK = false;
-            validationErrors.push({ rowIndex: i, error: 'LIT musí mít level 0' });
+            validationErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorLitLevel'),
+            });
             continue;
         } else if (instruction.instruction == InstructionType.OPR) {
             if (instruction.level != 0) {
                 validationOK = false;
-                validationErrors.push({ rowIndex: i, error: 'OPR musí mít level 0' });
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorOprLevel'),
+                });
                 continue;
             } else if (instruction.parameter < 1 || instruction.parameter > 13) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'OPR musí mít parametr (A) mezi 0 a 13',
+                    error: i18next.t('core:validatorOprParam'),
                 });
                 continue;
             }
@@ -174,32 +197,38 @@ export function ParseAndValidate(input: string): ValidationResult {
             validationOK = false;
             validationErrors.push({
                 rowIndex: i,
-                error: 'CAL musí skočit na adresu >= 0',
+                error: i18next.t('core:validatorCalParam'),
             });
             continue;
         } else if (instruction.instruction == InstructionType.JMP) {
             if (instruction.level != 0) {
                 validationOK = false;
-                validationErrors.push({ rowIndex: i, error: 'JMP musí mít level 0' });
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorJmpLevel'),
+                });
                 continue;
             } else if (instruction.parameter < 0) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'JMP musí mít parametr (A) >= 0',
+                    error: i18next.t('core:validatorJmpParam'),
                 });
                 continue;
             }
         } else if (instruction.instruction == InstructionType.JMC) {
             if (instruction.level != 0) {
                 validationOK = false;
-                validationErrors.push({ rowIndex: i, error: 'JMC musí mít level 0' });
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorJmcLevel'),
+                });
                 continue;
             } else if (instruction.parameter < 0) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'JMC musí mít parametr (A) >= 0',
+                    error: i18next.t('core:validatorJmcParam'),
                 });
                 continue;
             }
@@ -208,14 +237,17 @@ export function ParseAndValidate(input: string): ValidationResult {
             instruction.level != 0
         ) {
             validationOK = false;
-            validationErrors.push({ rowIndex: i, error: 'INT musí mít level 0' });
+            validationErrors.push({
+                rowIndex: i,
+                error: i18next.t('core:validatorIntLevel'),
+            });
             continue;
         } else if (instruction.instruction == InstructionType.RET) {
             if (instruction.level != 0 || instruction.parameter != 0) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'RET musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorRet'),
                 });
                 continue;
             }
@@ -224,7 +256,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'REA musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorRea'),
                 });
                 continue;
             }
@@ -233,7 +265,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'WRI musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorWri'),
                 });
                 continue;
             }
@@ -242,7 +274,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'NEW musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorNew'),
                 });
                 continue;
             }
@@ -251,7 +283,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'DEL musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorDel'),
                 });
                 continue;
             }
@@ -260,7 +292,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'LDA musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorLda'),
                 });
                 continue;
             }
@@ -269,7 +301,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'STA musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorSta'),
                 });
                 continue;
             }
@@ -278,7 +310,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'PLD musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorPld'),
                 });
                 continue;
             }
@@ -287,7 +319,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
-                    error: 'PST musí mít level i parametr (A) 0',
+                    error: i18next.t('core:validatorPst'),
                 });
                 continue;
             }
