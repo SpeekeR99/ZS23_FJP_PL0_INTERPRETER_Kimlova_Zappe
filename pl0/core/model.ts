@@ -11,8 +11,6 @@ import {
 
 // ------------------------------------------- INTERFACES
 
-import { BlockList } from 'net';
-
 export interface DataModel {
     pc: number;
     base: number;

@@ -6,6 +6,10 @@ import {
 } from './model';
 
 export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
+    let values: number[] = [];
+    for (let i = 0; i < heapSize; i++) {
+        values.push(0);
+    }
     const m: DataModel = {
         pc: 0,
         base: 0,
@@ -22,7 +26,8 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
 
         heap: {
             size: heapSize,
-            blocks: [{ index: 0, size: heapSize, empty: true, values: [] }],
+            values: values,
+            heapBlocks: [],
         },
     };
 
