@@ -38,6 +38,18 @@ export function HeapCellVisualisation(props: HeapCellVisualisationProps) {
                 return styles.heapCellFull;
         }
     }
+    function getCellTypeName() {
+        switch (props.type) {
+            case HeapCellType.NOT_ALLOCATED:
+                return 'Nealokováno';
+            case HeapCellType.NOT_ALLOCATED_META:
+                return 'Nealokováno, obsahuje metadata bloku';
+            case HeapCellType.ALLOCATED_META:
+                return 'Alokováno, obsahuje metadata bloku';
+            case HeapCellType.ALLOCATED_DATA:
+                return 'Alokováno';
+        }
+    }
 
     function showValue() {
         return (
@@ -60,11 +72,11 @@ export function HeapCellVisualisation(props: HeapCellVisualisationProps) {
                     : {}
             }
             title={
-                'index: ' +
+                'Index: ' +
                 index.toString() +
-                '\nhodnota: ' +
-                (!isAllocated() && '-- nealokováno --') +
-                (showValue() && 'hodnota: ' + props.value)
+                '\n' +
+                getCellTypeName() +
+                (showValue() && '\nHodnota: ' + props.value)
             }
         >
             {showValue() && props.value}
