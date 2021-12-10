@@ -1,7 +1,13 @@
 import { ExplanationMessagePart } from './highlighting';
 import { Explanation } from './explainer';
 
-import { Allocate, Free, GetValueFromHeap, PutValueOnHeap } from './allocator';
+import {
+    Allocate,
+    Free,
+    GetValueFromHeap,
+    PutValueOnHeap,
+    UpdateHeapBlocks,
+} from './allocator';
 
 // ------------------------------------------- INTERFACES
 
@@ -35,14 +41,21 @@ export interface StackFrame {
 
 export interface Heap {
     size: number;
-    blocks: HeapBlock[];
-}
-export interface HeapBlock {
-    index: number;
-    size: number;
-    empty: boolean;
-
     values: number[];
+
+    heapBlocks: HeapBlock[];
+}
+
+export interface HeapBlock {
+    dataAddress: number;
+    dataSize: number;
+
+    blockAddress: number;
+    blockSize: number;
+
+    free: boolean;
+
+    allocatorInfoIndices: number[];
 }
 
 export enum InstructionType {
@@ -489,6 +502,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
     if (params.model.pc >= params.instructions.length) {
         isEnd = true;
     }
+
+    UpdateHeapBlocks(heap);
 
     return {
         warnings: warnings,

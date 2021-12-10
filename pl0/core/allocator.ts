@@ -12,35 +12,35 @@ import type { HeapBlock } from './model';
  * @returns index of the first allocated cell or -1 if the allocation failed
  */
 export function Allocate(heap: Heap, count: number): number {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (!heap.blocks[i].empty) {
-            continue;
-        }
+    let blockAddress = 0;
 
-        if (heap.blocks[i].size > count) {
-            let blocksAfter = heap.blocks.slice(i + 1);
-            let blocksBefore = heap.blocks.slice(0, i);
-            let fullBlock: HeapBlock = {
-                empty: false,
-                index: heap.blocks[i].index,
-                size: count,
-                values: CreateArray(count),
-            };
-            let emptyBlock: HeapBlock = {
-                empty: true,
-                index: heap.blocks[i].index + count,
-                size: heap.blocks[i].size - count,
-                values: CreateArray(heap.blocks[i].size - count),
-            };
-            blocksBefore.push(fullBlock);
-            blocksBefore.push(emptyBlock);
-            heap.blocks = blocksBefore.concat(blocksAfter);
-
-            return fullBlock.index;
-        } else if (heap.blocks[i].size == count) {
-            // Trivial case - the first block is the exact size needed
-            heap.blocks[i].empty = false;
-            return heap.blocks[i].index;
+    // First block has to start at 0
+    while (blockAddress < heap.size - 1) {
+        // If the block is free and large enough
+        if (heap.values[blockAddress + 1] == 0 && heap.values[blockAddress] >= count) {
+            // the block info takes up two cells, of the block is exactly count large or one larger
+            // we allocate it as is
+            if (
+                heap.values[blockAddress] == count ||
+                heap.values[blockAddress] == count + 1
+            ) {
+                heap.values[blockAddress + 1] = 1;
+                return blockAddress + 2;
+            } else {
+                // Otherwise we split the block - one count large and the following
+                // count smaller and 2 more smaller for the block info
+                // worst case scenation, we will have empty block with size 0 taking up 2 cells
+                heap.values[blockAddress + heap.values[blockAddress]] =
+                    heap.values[blockAddress] - count - 2;
+                heap.values[blockAddress + heap.values[blockAddress] + 1] = 0;
+                heap.values[blockAddress] = count;
+                heap.values[blockAddress + 1] = 1;
+                return blockAddress + 2;
+            }
+        } else {
+            // if the block is not empty or large enough, we move onto another block
+            // which is 2 memory info cells and block size more to the right
+            blockAddress += heap.values[blockAddress] + 2;
         }
     }
 
@@ -55,71 +55,28 @@ export function Allocate(heap: Heap, count: number): number {
  * @returns 0 on success, -1 on failure
  */
 export function Free(heap: Heap, address: number): number {
-    // Find the address
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
-            // The block to deallocate
-            let targetBlock = heap.blocks[i];
-            targetBlock.empty = true;
-
-            // @ts-ignore
-            let leftBlocks;
-            // @ts-ignore
-            let rightBlocks;
-
-            // See if the block on the left is empty - if yes, merge it
-            if (i != 0) {
-                if (heap.blocks[i - 1].empty) {
-                    let leftBlock = heap.blocks[i - 1];
-                    leftBlocks = heap.blocks.slice(0, i);
-                    leftBlocks.pop();
-                    targetBlock.size += leftBlock.size;
-                    targetBlock.index = leftBlock.index;
-                } else {
-                    leftBlocks = heap.blocks.slice(0, i);
-                }
-            } else {
-                leftBlocks = [];
-            }
-
-            if (i != heap.blocks.length - 1) {
-                if (heap.blocks[i + 1].empty) {
-                    let rightBlock = heap.blocks[i + 1];
-                    rightBlocks = heap.blocks.slice(i + 1);
-                    rightBlocks = rightBlocks.reverse();
-                    rightBlocks.pop();
-                    rightBlocks = rightBlocks.reverse();
-                    targetBlock.size += rightBlock.size;
-                } else {
-                    rightBlocks = heap.blocks.slice(i + 1);
-                }
-            } else {
-                rightBlocks = [];
-            }
-
-            let resultBlocks: HeapBlock[] = [];
-
-            if (i != 0) {
-                // @ts-ignore
-                leftBlocks.push(targetBlock);
-                // @ts-ignore
-                resultBlocks = resultBlocks.concat(leftBlocks);
-            } else {
-                resultBlocks.push(targetBlock);
-            }
-
-            if (i != heap.blocks.length - 1) {
-                // @ts-ignore
-                resultBlocks = resultBlocks.concat(rightBlocks);
-            }
-
-            heap.blocks = resultBlocks;
-            return 0;
-        }
+    if (address > heap.size - 1 || address < 0) {
+        // Fail on out of bounds
+        return -1;
     }
 
-    // do warning, not fatal
-    return -1;
+    // block size is two to the left of the address
+    let blockSize = heap.values[address - 2];
+    // mark the block as free
+    heap.values[address - 1] = 0;
+
+    // We have basically a singly linked list, so we can merge the block only with the
+    // one to the right if it is empty
+    if (heap.values[address + blockSize + 2] == 0) {
+        // We set the freed block size to be following block size larger + 2
+        // for the block info
+        heap.values[address - 2] += heap.values[address + blockSize + 1] + 2;
+        // Then we zero the memory info of the block merged with the one freed
+        heap.values[address + blockSize + 1] = 0;
+        heap.values[address + blockSize + 2] = 0;
+    }
+
+    return 0;
 }
 
 /**
@@ -129,16 +86,32 @@ export function Free(heap: Heap, address: number): number {
  * @returns first allocated cell index on success or -1 on failure
  */
 export function AllocateDummy(heap: Heap, count: number): number {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (!heap.blocks[i].empty) {
-            continue;
-        }
-        if (heap.blocks[i].size > count) {
-            return heap.blocks[i].index;
-        } else if (heap.blocks[i].size == count) {
-            return heap.blocks[i].index;
+    let blockAddress = 0;
+
+    // First block has to start at 0
+    while (blockAddress < heap.size - 1) {
+        // If the block is free and large enough
+        if (heap.values[blockAddress + 1] == 0 && heap.values[blockAddress] >= count) {
+            // the block info takes up two cells, so if the block is exactly count large or one larger
+            // we allocate it as is
+            if (
+                heap.values[blockAddress] == count ||
+                heap.values[blockAddress] == count + 1
+            ) {
+                return blockAddress + 2;
+            } else {
+                // Otherwise we split the block - one count large and the following
+                // count smaller and 2 more smaller for the block info
+                // worst case scenation, we will have empty block with size 0 taking up 2 cells
+                return blockAddress + 2;
+            }
+        } else {
+            // if the block is not empty or large enough, we move onto another block
+            // which is 2 memory info cells and block size more to the right
+            blockAddress += heap.values[blockAddress] + 2;
         }
     }
+
     // No empty space found
     return -1;
 }
@@ -149,17 +122,16 @@ export function AllocateDummy(heap: Heap, count: number): number {
  * @param address address
  * @returns number of freed cells on success or -1 on failure
  */
-export function FreeDummy(heap: Heap, address: number): HeapBlock {
-    // Find the address
-    for (let i = 0; i < heap.blocks.length; i++) {
-        if (heap.blocks[i].index == address && !heap.blocks[i].empty) {
-            // The block to deallocate
-            return heap.blocks[i];
-        }
+export function FreeDummy(heap: Heap, address: number): number {
+    if (address > heap.size - 1 || address < 0) {
+        // Fail on out of bounds
+        return -1;
     }
 
-    // do warning, not fatal
-    return { size: -1, index: address, empty: true, values: [] };
+    // block size is two to the left of the address
+    let blockSize = heap.values[address - 2];
+
+    return blockSize;
 }
 
 /**
@@ -169,14 +141,12 @@ export function FreeDummy(heap: Heap, address: number): HeapBlock {
  * @returns value stored on success, null on out-of-bounds access and NaN on unallocated memory access
  */
 export function GetValueFromHeap(heap: Heap, address: number): number | null {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.index == -1) {
+    if (address < 0 || address > heap.size - 1) {
         return null;
-    } else if (heapBlock.empty) {
-        return NaN;
     } else {
-        return heapBlock.values[address - heapBlock.index];
+        return heap.values[address];
     }
+    // We dont care about unallocated memory with this approach
 }
 
 /**
@@ -187,15 +157,13 @@ export function GetValueFromHeap(heap: Heap, address: number): number | null {
  * @returns 0 on success, -1 on undefined index (larger than heap max size), -2 on unallocated memory access
  */
 export function PutValueOnHeap(heap: Heap, address: number, value: number): number {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.index == -1) {
+    if (address < 0 || address > heap.size - 1) {
         return -1;
-    } else if (heapBlock.empty) {
-        return -2;
     } else {
-        heapBlock.values[address - heapBlock.index] = value;
+        heap.values[address] = value;
         return 0;
     }
+    // We dont care about unallocated memory with this approach
 }
 
 /**
@@ -205,13 +173,10 @@ export function PutValueOnHeap(heap: Heap, address: number, value: number): numb
  * @returns value stored on success, null on out-of-bounds and NaN on unallocated memory access
  */
 export function GetValueFromHeapDummy(heap: Heap, address: number): number | null {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (address > heap.size - 1) {
+    if (address < 0 || address > heap.size - 1) {
         return null;
-    } else if (heapBlock.empty) {
-        return NaN;
     } else {
-        return heapBlock.values[address - heapBlock.index];
+        return heap.values[address];
     }
 }
 
@@ -223,39 +188,46 @@ export function GetValueFromHeapDummy(heap: Heap, address: number): number | nul
  * @returns 0 on success, -1 on undefined index (larger than heap max size), -2 on unallocated memory access
  */
 export function PutValueOnHeapDummy(heap: Heap, address: number) {
-    let heapBlock = FindHeapBlockGivenAddress(heap, address);
-    if (heapBlock.index == -1) {
+    if (address < 0 || address > heap.size - 1) {
         return -1;
-    } else if (heapBlock.empty) {
-        return -2;
     } else {
         return 0;
+    }
+}
+
+/**
+ * Heap has attribute heapBlocks, which is info for the UI about how to
+ * visualise the heap - it's an array of HeapBlock structures which contain
+ *  - blockAddress - this is the index in heap.values where the whole block starts (including the allocator info)
+ *  - blockSize - how big the block is incl. the allocator info
+ *  - dataAddress - where the data starts (aka the index the Allocate method returns)
+ *  - dataSize - how big the data part of the block is (the part user is supposed to use)
+ *  - allocatorInfoIndices - indices of all the cells in the block, which are used by allocator (block size, empty/free, ...)
+ *  - free - whether the block is free or not
+ * For each block in memory a HeapBlock has to be created and added to the heap.heapBlocks array
+ * @param heap heap
+ */
+export function UpdateHeapBlocks(heap: Heap) {
+    let blockAddress = 0;
+    heap.heapBlocks = [];
+    while (blockAddress < heap.size - 1) {
+        let blockSize = heap.values[blockAddress] + 2;
+        let dataSize = heap.values[blockAddress];
+        let free = heap.values[blockAddress + 1] == 0;
+        let dataAddress = blockAddress + 2;
+        let allocatorInfoIndices = [blockAddress, blockAddress + 1];
+        heap.heapBlocks.push({
+            blockAddress: blockAddress,
+            blockSize: blockSize,
+            dataSize: dataSize,
+            dataAddress: dataAddress,
+            free: free,
+            allocatorInfoIndices: allocatorInfoIndices,
+        });
+        blockAddress += blockSize;
     }
 }
 
 // -------------------------------------------------------------------------
 //  UTILITY
 // -------------------------------------------------------------------------
-
-function FindHeapBlockGivenAddress(heap: Heap, address: number): HeapBlock {
-    for (let i = 0; i < heap.blocks.length; i++) {
-        let heapBlock = heap.blocks[i];
-        if (
-            heapBlock.index <= address &&
-            address <= heapBlock.index + heapBlock.size - 1
-        ) {
-            return heapBlock;
-        }
-    }
-
-    return { size: 0, values: [], empty: true, index: -1 };
-}
-
-function CreateArray(size: number, value: number = 0): number[] {
-    let arr: number[] = [];
-    for (let i = 0; i < size; i++) {
-        arr.push(value);
-    }
-
-    return arr;
-}

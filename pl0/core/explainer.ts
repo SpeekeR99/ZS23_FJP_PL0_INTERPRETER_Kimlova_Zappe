@@ -6,8 +6,6 @@ import {
     Stack,
     StackItem,
     StackFrame,
-    Heap,
-    HeapBlock,
     OperationType,
 } from './model';
 
@@ -608,10 +606,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.DEL:
             var addr = stack.stackItems[params.model.sp].value;
-            let block = FreeDummy(heap, addr);
+            let res = FreeDummy(heap, addr);
 
-            if (block.size == -1) {
-                explanation.message = 'Na indexu %1 nezačíná žádný alokovaný blok';
+            if (res == -1) {
+                explanation.message =
+                    'Chyba při dealokaci adresy %1 - mimo rozsah nebo není alokovaná';
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: addr,
@@ -628,7 +627,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 explanation.message = 'Dealokace %1 buněk od adresy %2';
                 explanation.placeholders.push({
                     placeholder: '1',
-                    value: block.size,
+                    value: res,
                     heap: [],
                     stack: [],
                     instructions: [],
@@ -640,7 +639,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 });
                 explanation.placeholders.push({
                     placeholder: '2',
-                    value: block.index,
+                    value: addr,
                     heap: [],
                     stack: [],
                     instructions: [],
@@ -650,8 +649,8 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                     input: false,
                     highlightType: HighlightType.BACKGROUND,
                 });
-                for (let i = 0; i < block.size; i++) {
-                    explanation.placeholders[1].heap.push(block.index + i);
+                for (let i = 0; i < res; i++) {
+                    explanation.placeholders[1].heap.push(addr + i);
                 }
             }
 
