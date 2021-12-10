@@ -1,3 +1,4 @@
+import { getPackedSettings } from 'http2';
 import type { Heap } from './model';
 import type { HeapBlock } from './model';
 
@@ -30,7 +31,7 @@ export function Allocate(heap: Heap, count: number): number {
                 // Otherwise we split the block - one count large and the following
                 // count smaller and 2 more smaller for the block info
                 // worst case scenation, we will have empty block with size 0 taking up 2 cells
-                heap.values[blockAddress + heap.values[blockAddress]] =
+                heap.values[blockAddress + count + 2] =
                     heap.values[blockAddress] - count - 2;
                 heap.values[blockAddress + heap.values[blockAddress] + 1] = 0;
                 heap.values[blockAddress] = count;
@@ -65,15 +66,18 @@ export function Free(heap: Heap, address: number): number {
     // mark the block as free
     heap.values[address - 1] = 0;
 
-    // We have basically a singly linked list, so we can merge the block only with the
-    // one to the right if it is empty
-    if (heap.values[address + blockSize + 2] == 0) {
-        // We set the freed block size to be following block size larger + 2
-        // for the block info
-        heap.values[address - 2] += heap.values[address + blockSize + 1] + 2;
-        // Then we zero the memory info of the block merged with the one freed
-        heap.values[address + blockSize + 1] = 0;
-        heap.values[address + blockSize + 2] = 0;
+    // check right
+    if (address + blockSize < heap.size - 1) {
+        // We have basically a singly linked list, so we can merge the block only with the
+        // one to the right if it is empty
+        if (heap.values[address + blockSize + 1] == 0) {
+            // We set the freed block size to be following block size larger + 2
+            // for the block info
+            heap.values[address - 2] += heap.values[address + blockSize] + 2;
+            // Then we zero the memory info of the block merged with the one freed
+            heap.values[address + blockSize + 1] = 0;
+            heap.values[address + blockSize + 2] = 0;
+        }
     }
 
     return 0;
