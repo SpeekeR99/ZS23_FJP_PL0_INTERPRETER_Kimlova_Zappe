@@ -16,6 +16,8 @@ import {
     PutValueOnHeapDummy,
 } from './allocator';
 
+import i18next from 'i18next';
+
 // ------------------------------------------- INTERFACES
 
 export interface Explanation {
@@ -68,7 +70,7 @@ function GetValuesFromStack(
     let retvals: number[] = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
-            throw new Error('Pokus o přístup na zásobník záporným indexem');
+            throw new Error(i18next.t('core:modelStackNegativeError'));
         }
         retvals.push(stack.stackItems[index - i].value);
         /*if (decrementCurrentFrame) {
@@ -76,47 +78,6 @@ function GetValuesFromStack(
         }*/
     }
     return retvals;
-}
-
-function ConvertToStackItems(...values: number[]) {
-    let items: StackItem[] = [];
-    for (let i = 0; i < values.length; i++) {
-        items.push({ value: values[i] });
-    }
-    return items;
-}
-
-// Pushes StackItems onto stack
-// Check if the stack if large enough and expands it if needed
-// Returns new stack pointer
-function PushOntoStack(
-    stack: Stack,
-    sp: number,
-    values: StackItem[],
-    increment: boolean = true
-): number {
-    let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-    for (let i = 0; i < values.length; i++) {
-        if (increment) {
-            sp++;
-            currentStackFrame.size++;
-        }
-
-        if (sp > stack.stackItems.length - 1) {
-            stack.stackItems.push({ value: 0 });
-        }
-        stack.stackItems[sp] = values[i];
-    }
-
-    if (!CheckStackSize(stack)) {
-        throw new Error(
-            'Velikost zásobníku přesáhla maximální povolenou hodnotu (' +
-                stack.maxSize +
-                ')'
-        );
-    }
-
-    return sp;
 }
 
 // Checks if stack size is larger than the maximum permissible value
@@ -171,7 +132,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
     switch (op) {
         case InstructionType.LIT:
-            explanation.message = 'Přidá hodnotu %1 na vrchol zásobníku';
+            explanation.message = i18next.t('core:explainerLIT');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -189,7 +150,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             explanation = ExplainOPR(stack, parameter, params.model.sp);
             break;
         case InstructionType.INT:
-            explanation.message = 'Zvýší vrchol zásobníku o %1';
+            explanation.message = i18next.t('core:explainerINT');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -217,17 +178,16 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 highlightType: HighlightType.BOLD,
             });
             if (parameter >= params.instructions.length) {
-                explanation.message = 'Skočí na instrukci %1, která neexistuje';
+                explanation.message = i18next.t('core:explainerJMPErr');
             } else {
-                explanation.message = 'Skočí na instrukci %1';
+                explanation.message = i18next.t('core:explainerJMP');
                 explanation.placeholders[0].instructions.push(parameter);
             }
             break;
         case InstructionType.JMC:
             if (stack.stackItems[params.model.sp].value == 0) {
                 if (parameter >= params.instructions.length) {
-                    explanation.message =
-                        'Hodnota na vrcholu zásobníku je %1, ale skok povede na neexistující instrukci (%2)';
+                    explanation.message = i18next.t('core:explainerJMCNonExistent');
                     explanation.placeholders.push({
                         placeholder: '1',
                         value: stack.stackItems[params.model.sp].value,
@@ -253,8 +213,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                         highlightType: HighlightType.BOLD,
                     });
                 } else {
-                    explanation.message =
-                        'Hodnota na vrcholu zásobníku je %1, bude proveden skok na instrukci %2';
+                    explanation.message = i18next.t('core:explainerJMCJump');
                     explanation.placeholders.push({
                         placeholder: '1',
                         value: stack.stackItems[params.model.sp].value,
@@ -282,8 +241,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 }
                 explanation.message;
             } else {
-                explanation.message =
-                    'Hodnota na vrcholu zásobníku je %1, skok nebude proveden';
+                explanation.message = i18next.t('core:explainerJMCDontJump');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: stack.stackItems[params.model.sp].value,
@@ -300,7 +258,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.CAL:
             if (parameter >= params.instructions.length) {
-                explanation.message = 'Instrukce %1 je mimo rozsah';
+                explanation.message = i18next.t('core:explainerCALOutOfBoundsInstr');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: parameter,
@@ -318,14 +276,13 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
             let levels = FindBaseDummy(stack, params.model.base, level);
             if (levels[0] == -1) {
-                explanation.message =
-                    'Level je příliš velký - statická báze by musela být pod prvním rámcem';
+                explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
             explanation.message =
-                'Skočí na instrukci %1, vytvoří rámec s následující instrukcí (' +
+                i18next.t('core:explainerCALOk1') +
                 (params.model.pc + 1) +
-                '), dynamickou bází (%2) a statickou bází (%3)';
+                i18next.t('core:explainerCALOk2');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: parameter,
@@ -368,12 +325,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.RET:
             if (params.model.base == 0) {
-                explanation.message = 'Konec programu';
+                explanation.message = i18next.t('core:explainerRETEnd');
                 break;
             }
 
-            explanation.message =
-                'Odstraní rámec, skočí na instrukci %1, nastaví bázi na dynamickou bázi %2, SP=%3';
+            explanation.message = i18next.t('core:explainerRET');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[params.model.base + 2].value,
@@ -414,8 +370,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
         case InstructionType.LOD:
             let bases = FindBaseDummy(stack, params.model.base, level);
             if (bases[0] == -1) {
-                explanation.message =
-                    'Level je příliš velký - statická báze by musela být pod prvním rámcem';
+                explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
 
@@ -429,11 +384,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
 
             explanation.message =
-                'Načte hodnotu z levelu %1 adresy %2 zásobníku (index ' +
+                i18next.t('core:explainerLOD1') +
                 address +
-                ', hodnota ' +
+                i18next.t('core:explainerLOD2') +
                 tmp +
-                ') a přidá ji na vrchol';
+                i18next.t('core:explainerLOD3');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: level,
@@ -466,22 +421,18 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
         case InstructionType.STO:
             bases = FindBaseDummy(stack, params.model.base, level);
             if (bases[0] == -1) {
-                explanation.message =
-                    'Level je příliš velký - statická báze by musela být pod prvním rámcem';
+                explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
 
             var address = bases[bases.length - 1] + parameter;
 
             if (address < 0) {
-                explanation.message = 'Pokus o uložení pod zásobník';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 break;
             }
 
-            explanation.message =
-                'Uloží hodnotu na vrcholu zásobníku (%1) na level %2 adresu %3 zásobníku (index ' +
-                address +
-                ')';
+            explanation.message = i18next.t('core:explainerSTO') + address + ')';
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[params.model.sp].value,
@@ -540,20 +491,19 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 stack.stackItems[params.model.sp].value < 0 ||
                 stack.stackItems[params.model.sp].value > 255
             ) {
-                explanation.message = 'Hodnota na vrcholu zásobníku není unsigned byte';
+                explanation.message = i18next.t('core:explainerWRIAsciiErr');
             } else {
                 explanation.message =
-                    'Bude vypsána hodnota na vrcholu zásobníku (%1) jako ASCII ' +
+                    i18next.t('core:explainerWRI') +
                     String.fromCharCode(stack.stackItems[params.model.sp].value);
             }
             break;
         case InstructionType.REA:
             if (params.input.length == 0) {
-                explanation.message =
-                    'Není co přečíct ze vstupu - doplňte vstup, jinak se interpret ukončí';
+                explanation.message = i18next.t('core:explainerREAInputEmpty');
             } else {
                 explanation.message =
-                    'Na vrchol bude přidán znak ' +
+                    i18next.t('core:explainerREA') +
                     params.input.at(0) +
                     ' (' +
                     params.input.charCodeAt(0) +
@@ -576,16 +526,13 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
 
             if (count <= 0 || count > params.model.heap.size) {
-                explanation.message =
-                    'Pokus o alokaci %1 buněk haldy, což není validní počet - na vrchol se přidá -1';
+                explanation.message = i18next.t('core:explainerNEWInvalidArg');
             } else {
                 let res = AllocateDummy(heap, count);
                 if (res == -1) {
-                    explanation.message =
-                        'Pokus o alokaci %1 buněk haldy, ale není dostatečně velký volný blok - na vrchol se přidá -1';
+                    explanation.message = i18next.t('core:explainerNEWNoFreeSpace');
                 } else {
-                    explanation.message =
-                        'Alokace %1 buněk haldy od indexu %2, na vrchol se přidá %2';
+                    explanation.message = i18next.t('core:explainerNEW');
                     explanation.placeholders.push({
                         placeholder: '2',
                         value: res,
@@ -609,8 +556,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             let res = FreeDummy(heap, addr);
 
             if (res == -1) {
-                explanation.message =
-                    'Chyba při dealokaci adresy %1 - mimo rozsah nebo není alokovaná';
+                explanation.message = i18next.t('core:explainerDELError');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: addr,
@@ -624,7 +570,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                     highlightType: HighlightType.BOLD,
                 });
             } else {
-                explanation.message = 'Dealokace %1 buněk od adresy %2';
+                explanation.message = i18next.t('core:explainerDEL');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: res,
@@ -670,18 +616,17 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 highlightType: HighlightType.BOLD,
             });
             if (addr < 0 || addr >= heap.size) {
-                explanation.message = 'Adresa %1 je mimo rozsah haldy';
+                explanation.message = i18next.t('core:explainerLDAOutOfBounds');
             } else {
                 let res = GetValueFromHeapDummy(heap, addr);
                 if (res === null) {
-                    explanation.message = 'Adresa %1 je mimo rozsah haldy';
+                    explanation.message = i18next.t('core:explainerLDAOutOfBounds');
                 } else if (Number.isNaN(res)) {
-                    explanation.message = 'Adresa %1 není alokovaná';
+                    explanation.message = i18next.t('core:explainerLDAUnallocated');
                     explanation.placeholders[0].highlightType = HighlightType.BACKGROUND;
                     explanation.placeholders[0].heap.push(addr);
                 } else {
-                    explanation.message =
-                        'Na vrchol zásobníku se přidá hodnota z adresy %1 v haldě';
+                    explanation.message = i18next.t('core:explainerLDA');
                     explanation.placeholders[0].highlightType = HighlightType.BACKGROUND;
                     explanation.placeholders[0].heap.push(addr);
                 }
@@ -689,7 +634,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             break;
         case InstructionType.STA:
             if (params.model.sp - 1 < 0) {
-                explanation.message = 'Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 return explanation;
             }
 
@@ -698,7 +643,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             var temp = PutValueOnHeapDummy(heap, addr);
 
             if (temp == -2) {
-                explanation.message = 'Přístup do paměti na nealokovanou adresu %1';
+                explanation.message = i18next.t('core:explainerSTAUnallocated');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: addr,
@@ -712,9 +657,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                     highlightType: HighlightType.BACKGROUND,
                 });
             } else if (temp == -1) {
-                explanation.message = 'Přístup na adresu mimo rozsah haldy';
+                explanation.message = i18next.t('core:explainerSTAOutOfBounds');
             } else {
-                explanation.message = 'Uložení hodnoty %1 na adresu %2 v haldě';
+                explanation.message = i18next.t('core:explainerSTA');
                 explanation.placeholders.push({
                     placeholder: '1',
                     value: val,
@@ -745,8 +690,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             var values: number[] = GetValuesFromStack(stack, params.model.sp, 2);
             bases = FindBaseDummy(stack, params.model.base, values[1]);
             if (bases[0] == -1) {
-                explanation.message =
-                    'Level je příliš velký - statická báze by musela být pod prvním rámcem';
+                explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
 
@@ -757,10 +701,10 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
 
             explanation.message =
-                'Načte hodnotu z levelu %1 adresy %2 zásobníku (index %3' +
-                ', hodnota ' +
+                i18next.t('core:explainerLOD1') +
+                i18next.t('core:explainerLOD2') +
                 tmp +
-                ') a přidá ji na vrchol';
+                i18next.t('core:explainerLOD3');
 
             explanation.placeholders.push({
                 placeholder: '1',
@@ -806,13 +750,11 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
             bases = FindBaseDummy(stack, params.model.base, values[1]);
             if (bases[0] == -1) {
-                explanation.message =
-                    'Level je příliš velký - statická báze by musela být pod prvním rámcem';
+                explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
 
-            explanation.message =
-                'Uloží hodnotu %1 na level %2 adresu %3 zásobníku (index %4)';
+            explanation.message = i18next.t('core:explainerPST');
 
             explanation.placeholders.push({
                 placeholder: '1',
@@ -868,56 +810,27 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
             break;
         default:
-            throw new Error('Neznámá instrukce ' + InstructionType[op]);
+            throw new Error(i18next.t('core:modelNonExistentInstructionError'));
     }
 
     if (params.model.pc + 1 >= params.instructions.length) {
         if (op == InstructionType.JMC) {
             if (stack.stackItems[params.model.sp].value != 0) {
-                explanation.message =
-                    'Hodnota na vrcholu zásobníku je %1, skok nebude proveden a následující instrukce neexistuje';
+                explanation.message = i18next.t('core:explainerEndNoJump');
             }
         } else if (
             op != InstructionType.CAL &&
             op != InstructionType.JMP &&
             op != InstructionType.RET
         ) {
-            explanation = { placeholders: [], message: 'Další instrukce neexistuje' };
+            explanation = {
+                placeholders: [],
+                message: i18next.t('core:explainerEndNoMoreInstructions'),
+            };
         }
     }
 
     return explanation;
-}
-
-function PerformINT(stack: Stack, sp: number, count: number) {
-    let currentStackFrame: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-
-    if (count >= 0) {
-        sp += count;
-        currentStackFrame.size += count;
-        if (sp > stack.stackItems.length - 1) {
-            stack.stackItems.push({ value: 0 });
-        }
-    } else {
-        if (sp + count < -1) {
-            throw new Error('Pokus o snížení SP na -2');
-        } else if (sp + count < currentStackFrame.index) {
-            throw new Error('Pokus o snížení SP pod aktuální stack frame');
-        } else {
-            sp += count;
-            currentStackFrame.size += count;
-        }
-    }
-
-    if (!CheckStackSize(stack)) {
-        throw new Error(
-            'Velikost zásobníku přesáhla maximální povolenou hodnotu (' +
-                stack.maxSize +
-                ')'
-        );
-    }
-
-    return sp;
 }
 
 function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
@@ -925,14 +838,13 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
     let explanation: Explanation = { message: '', placeholders: [] };
 
     if (sp < 0) {
-        explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+        explanation.message = i18next.t('core:modelStackNegativeError');
         return explanation;
     }
 
     switch (e_op) {
         case OperationType.U_MINUS:
-            explanation.message =
-                'Hodnota na vrcholu zásobníku se přenásobí -1 (-1 * %1)';
+            explanation.message = i18next.t('core:explainerOPR1');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -947,8 +859,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.ADD:
-            explanation.message =
-                'První dvě hodnoty na vrcholu zásobníku se sečtou (%2 + %1)';
+            explanation.message = i18next.t('core:explainerOPR2');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -963,7 +874,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -982,8 +893,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.SUB:
-            explanation.message =
-                'První dvě hodnoty na vrcholu zásobníku se odečtou (%2 - %1)';
+            explanation.message = i18next.t('core:explainerOPR3');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -998,7 +908,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1017,8 +927,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.MULT:
-            explanation.message =
-                'První dvě hodnoty na vrcholu zásobníku se vynásobí (%2 * %1)';
+            explanation.message = i18next.t('core:explainerOPR4');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1033,7 +942,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1052,8 +961,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.DIV:
-            explanation.message =
-                'První dvě hodnoty na vrcholu zásobníku se podělí (%2 / %1)';
+            explanation.message = i18next.t('core:explainerOPR5');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1068,7 +976,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1088,8 +996,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
             break;
         case OperationType.MOD:
-            explanation.message =
-                'Modulo prvních dvou hodnot na vrcholu zásobníku (%2 mod %1)';
+            explanation.message = i18next.t('core:explainerOPR6');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1104,7 +1011,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1124,7 +1031,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
             break;
         case OperationType.IS_ODD:
-            explanation.message = 'Test lichosti hodnoty na vrcholu zásobníku (%1)';
+            explanation.message = i18next.t('core:explainerOPR7');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1139,8 +1046,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.EQ:
-            explanation.message =
-                'Test rovnosti prvních dvou hodnot na vrcholu zásobníku (%2 == %1)';
+            explanation.message = i18next.t('core:explainerOPR8');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1155,7 +1061,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1174,8 +1080,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.N_EQ:
-            explanation.message =
-                'Test nerovnosti prvních dvou hodnot na vrcholu zásobníku (%2 != %1)';
+            explanation.message = i18next.t('core:explainerOPR9');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1190,7 +1095,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1209,8 +1114,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.LESS_THAN:
-            explanation.message =
-                "Test 'menší než' prvních dvou hodnot na vrcholu zásobníku (%2 < %1)";
+            explanation.message = i18next.t('core:explainerOPR10');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1225,7 +1129,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1244,8 +1148,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.MORE_EQ_THAN:
-            explanation.message =
-                "Test 'větší nebo rovno' prvních dvou hodnot na vrcholu zásobníku (%2 >= %1)";
+            explanation.message = i18next.t('core:explainerOPR11');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1260,7 +1163,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1279,8 +1182,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.MORE_THAN:
-            explanation.message =
-                "Test 'větší než' prvních dvou hodnot na vrcholu zásobníku (%2 > %1)";
+            explanation.message = i18next.t('core:explainerOPR12');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1295,7 +1197,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'CHYBA: Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1314,8 +1216,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         case OperationType.LESS_EQ_THAN:
-            explanation.message =
-                "Test 'menší nebo rovno' prvních dvou hodnot na vrcholu zásobníku (%2 <= %1)";
+            explanation.message = i18next.t('core:explainerOPR13');
             explanation.placeholders.push({
                 placeholder: '1',
                 value: stack.stackItems[sp].value,
@@ -1330,7 +1231,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
 
             if (sp - 1 < 0) {
-                explanation.message = 'Přístup na zásobník indexem < 0';
+                explanation.message = i18next.t('core:modelStackNegativeError');
                 explanation.placeholders = [];
                 return explanation;
             }
@@ -1349,7 +1250,7 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             });
             break;
         default:
-            explanation.message = 'Neznámá operace';
+            explanation.message = i18next.t('core:modelUnknownOPR');
     }
 
     return explanation;

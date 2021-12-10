@@ -1,5 +1,4 @@
 import { ExplanationMessagePart } from './highlighting';
-import { Explanation } from './explainer';
 
 import {
     Allocate,
@@ -8,6 +7,8 @@ import {
     PutValueOnHeap,
     UpdateHeapBlocks,
 } from './allocator';
+
+import i18next from 'i18next';
 
 // ------------------------------------------- INTERFACES
 
@@ -45,14 +46,20 @@ export interface Heap {
 }
 
 export interface HeapBlock {
+    // where the data starts (aka the index the Allocate method returns)
     dataAddress: number;
+    // how big the data part of the block is (the part user is supposed to use)
     dataSize: number;
 
+    // this is the index in heap.values where the whole block starts (including the allocator info)
     blockAddress: number;
+    // how big the block is incl. the allocator info
     blockSize: number;
 
+    // whether the block is free or not
     free: boolean;
 
+    // indices of all the cells in the block, which are used by allocator (block size, empty/free, ...)
     allocatorInfoIndices: number[];
 }
 
@@ -147,7 +154,7 @@ function GetValuesFromStack(
     let retvals: number[] = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
-            throw new Error('Pokus o přístup na zásobník záporným indexem');
+            throw new Error(i18next.t('core:modelStackNegativeError'));
         }
         retvals.push(stack.stackItems[index - i].value);
         if (decrementCurrentFrame) {
@@ -162,7 +169,7 @@ function GetValueFromStack(stack: Stack, index: number): number {
         while (stack.stackItems.length - 1 != index) {
             stack.stackItems.push({ value: 0 });
             if (stack.stackItems.length > stack.maxSize) {
-                throw new Error('Překročena maximální velikost zásobníku');
+                throw new Error(i18next.t('core:modelMaxStackSizeError'));
             }
         }
         return 0;
@@ -179,11 +186,11 @@ function PutOntoStack(stack: Stack, index: number, value: number) {
     }
 
     if (index < 0) {
-        throw new Error('Pokus o vložení na záporný index zásobníku');
+        throw new Error(i18next.t('core:modelStackNegativeError'));
     }
 
     if (stack.stackItems.length > stack.maxSize) {
-        throw new Error('Překročena maximální velikost zásobníku');
+        throw new Error(i18next.t('core:modelMaxStackSizeError'));
     }
 
     stack.stackItems[index].value = value;
@@ -220,11 +227,7 @@ function PushOntoStack(
     }
 
     if (!CheckStackSize(stack)) {
-        throw new Error(
-            'Velikost zásobníku přesáhla maximální povolenou hodnotu (' +
-                stack.maxSize +
-                ')'
-        );
+        throw new Error(i18next.t('core:modelMaxStackSizeError'));
     }
 
     return sp;
@@ -247,11 +250,6 @@ function CheckSPInBounds(sp: number) {
     }
 }
 
-function ChangeCurrentStackFrameSize(stack: Stack, count: number) {
-    let currentSF: StackFrame = stack.stackFrames[stack.stackFrames.length - 1];
-    currentSF.size += count;
-}
-
 function FindBase(stack: Stack, base: number, level: number): number {
     let newBase = base;
     while (level > 0) {
@@ -259,11 +257,7 @@ function FindBase(stack: Stack, base: number, level: number): number {
         level--;
 
         if (newBase == 0 && level != 0) {
-            throw new Error(
-                'Hledání statické báze došlo do prvního rámce a level není 0 (level je ' +
-                    level +
-                    ')'
-            );
+            throw new Error(i18next.t('core:modelBaseSearchError') + level + ')');
         }
     }
     return newBase;
@@ -275,7 +269,7 @@ function FindBase(stack: Stack, base: number, level: number): number {
 
 export function DoStep(params: InstructionStepParameters): InstructionStepResult {
     if (params.model.pc >= params.instructions.length) {
-        throw new Error('Neexistující instrukce');
+        throw new Error(i18next.t('core:modelNonExistentInstructionError'));
     }
 
     let instruction = params.instructions[params.model.pc];
@@ -309,7 +303,11 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         case InstructionType.JMP:
             if (parameter >= params.instructions.length) {
-                throw new Error('Instrukce na indexu ' + parameter + ' je mimo rozsah');
+                throw new Error(
+                    i18next.t('core:modelInstructionOutOfBounds1') +
+                        parameter +
+                        i18next.t('core:modelInstructionOutOfBounds2')
+                );
             }
             params.model.pc = parameter;
             break;
@@ -319,7 +317,9 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             if (operands[0] == 0) {
                 if (parameter >= params.instructions.length) {
                     throw new Error(
-                        'Instrukce na indexu ' + parameter + ' je mimo rozsah'
+                        i18next.t('core:modelInstructionOutOfBounds1') +
+                            parameter +
+                            i18next.t('core:modelInstructionOutOfBounds2')
                     );
                 }
                 params.model.pc = parameter;
@@ -349,7 +349,11 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             );
 
             if (parameter >= params.instructions.length) {
-                throw new Error('Instrukce na indexu ' + parameter + ' je mimo rozsah');
+                throw new Error(
+                    i18next.t('core:modelInstructionOutOfBounds1') +
+                        parameter +
+                        i18next.t('core:modelInstructionOutOfBounds2')
+                );
             }
 
             stack.stackFrames.push({ index: params.model.sp + 1, size: 0 });
@@ -397,7 +401,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var code = GetValuesFromStack(stack, params.model.sp, 1);
 
             if (code[0] < 0 || code[0] > 255) {
-                throw new Error('Na vrcholu zásobníku je hodnota mimo interval <0, 255>');
+                throw new Error(i18next.t('core:modelReadInvalidInput'));
             }
 
             params.model.output += String.fromCharCode(code[0]);
@@ -407,7 +411,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             break;
         case InstructionType.REA:
             if (inputString.length == 0) {
-                throw new Error('Není co přečíst ze vstupu');
+                throw new Error(i18next.t('core:modelReadInputEmpty'));
             }
 
             params.model.sp = PushOntoStack(
@@ -443,7 +447,9 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.pc++;
             if (Free(heap, addr[0]) != 0) {
                 throw new Error(
-                    'Na adrese ' + addr + ' nezačíná žádný alokovaný blok paměti'
+                    i18next.t('core:modelFreeBlockNotAllocated1') +
+                        addr +
+                        i18next.t('core:modelFreeBlockNotAllocated2')
                 );
             }
             break;
@@ -453,13 +459,13 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var val = GetValueFromHeap(heap, addr[0]);
             if (val === null) {
                 throw new Error(
-                    'Přístup do paměti na nedefinovaném indexu ' +
+                    i18next.t('core:modelHeapAccessUndefined1') +
                         addr[0] +
-                        ', velikost paměti = ' +
+                        i18next.t('core:modelHeapAccessUndefined2') +
                         heap.size
                 );
             } else if (Number.isNaN(val)) {
-                throw new Error('Přístup do nealokované paměti indexem ' + addr[0]);
+                throw new Error(i18next.t('core:modelHeapAccessUnallocated') + addr[0]);
             }
             params.model.sp = PushOntoStack(
                 stack,
@@ -474,13 +480,13 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var r = PutValueOnHeap(heap, addr[1], addr[0]);
             if (r == -1) {
                 throw new Error(
-                    'Přístup do paměti na nedefinovaném indexu ' +
+                    i18next.t('core:modelHeapAccessUndefined1') +
                         addr[1] +
-                        ', velikost paměti = ' +
+                        i18next.t('core:modelHeapAccessUndefined2') +
                         heap.size
                 );
             } else if (r == -2) {
-                throw new Error('Přístup do nealokované paměti indexem ' + addr[0]);
+                throw new Error(i18next.t('core:modelHeapAccessUnallocated') + addr[0]);
             }
             params.model.pc++;
             break;
@@ -503,7 +509,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.pc++;
             break;
         default:
-            throw new Error('Neznámá instrukce ' + InstructionType[op]);
+            throw new Error(i18next.t('core:modelNonExistentInstructionError'));
     }
 
     if (params.model.pc >= params.instructions.length) {
@@ -531,9 +537,9 @@ function PerformINT(stack: Stack, sp: number, count: number) {
         }
     } else {
         if (sp + count < -1) {
-            throw new Error('Pokus o snížení SP na -2');
+            throw new Error(i18next.t('core:modelINTStackLow'));
         } else if (sp + count < currentStackFrame.index) {
-            throw new Error('Pokus o snížení SP pod aktuální stack frame');
+            throw new Error(i18next.t('core:modelINTStackFrameLow'));
         } else {
             sp += count;
             currentStackFrame.size += count;
@@ -541,11 +547,7 @@ function PerformINT(stack: Stack, sp: number, count: number) {
     }
 
     if (!CheckStackSize(stack)) {
-        throw new Error(
-            'Velikost zásobníku přesáhla maximální povolenou hodnotu (' +
-                stack.maxSize +
-                ')'
-        );
+        throw new Error(i18next.t('core:modelMaxStackSizeError') + stack.maxSize + ')');
     }
 
     return sp;
@@ -651,7 +653,7 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             );
             break;
         default:
-            throw new Error('Neznámá OPR operace ' + OperationType[e_op]);
+            throw new Error(i18next.t('core:modelUnknownOPR') + OperationType[e_op]);
     }
 
     return sp;
