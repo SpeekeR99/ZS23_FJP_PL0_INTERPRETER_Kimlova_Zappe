@@ -10,6 +10,8 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
     for (let i = 0; i < heapSize; i++) {
         values.push(0);
     }
+    values[0] = heapSize - 2;
+
     const m: DataModel = {
         pc: 0,
         base: 0,
@@ -27,7 +29,16 @@ export function InitModel(stackMaxSize: number, heapSize: number): DataModel {
         heap: {
             size: heapSize,
             values: values,
-            heapBlocks: [],
+            heapBlocks: [
+                {
+                    blockAddress: 0,
+                    blockSize: heapSize,
+                    dataAddress: 2,
+                    dataSize: heapSize - 2,
+                    allocatorInfoIndices: [0, 1],
+                    free: true,
+                },
+            ],
         },
     };
 

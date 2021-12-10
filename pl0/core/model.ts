@@ -56,6 +56,15 @@ export interface HeapBlock {
     allocatorInfoIndices: number[];
 }
 
+export enum HeapCellType {
+    NOT_ALLOCATED,
+    NOT_ALLOCATED_META,
+    ALLOCATED_META,
+    ALLOCATED_DATA,
+
+    UNKNOWN,
+}
+
 export enum InstructionType {
     LIT,
     OPR,

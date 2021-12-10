@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import { Heap, Stack } from '../../core/model';
+import { Z_UNKNOWN } from 'zlib';
+import { Heap, HeapCellType, Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
-import { HeapBlockVisualisation } from './HeapBlockVisualisation';
+import { HeapCellVisualisation } from './HeapCellVisualisation';
 
 type HeapVisualisationProps = {
     heap: Heap;
@@ -10,6 +11,36 @@ type HeapVisualisationProps = {
 };
 
 export function HeapVisualisation(props: HeapVisualisationProps) {
+    function getCellType(index: number): HeapCellType {
+        if (!props.heap.heapBlocks || props.heap.heapBlocks.length === 0) {
+            return HeapCellType.UNKNOWN;
+        }
+
+        for (const block of props.heap.heapBlocks) {
+            const first = block.blockAddress;
+            const last = block.blockAddress + block.blockSize - 1;
+
+            const firstData = block.dataAddress;
+            const lastData = block.dataAddress + block.dataSize - 1;
+
+            if (index >= first && index <= last) {
+                if (index >= firstData && index <= lastData) {
+                    // in data part
+                    return block.free
+                        ? HeapCellType.NOT_ALLOCATED
+                        : HeapCellType.ALLOCATED_DATA;
+                } else {
+                    // in block metadata
+                    return block.free
+                        ? HeapCellType.NOT_ALLOCATED_META
+                        : HeapCellType.ALLOCATED_META;
+                }
+            }
+        }
+
+        return HeapCellType.UNKNOWN;
+    }
+
     return (
         <div
             style={{
@@ -19,15 +50,15 @@ export function HeapVisualisation(props: HeapVisualisationProps) {
                 flexWrap: 'wrap',
             }}
         >
-            <>
-                {props.heap.blocks.map((hb, index) => (
-                    <HeapBlockVisualisation
-                        heapblock={hb}
-                        key={index}
-                        heapToBeHighlighted={props.heapToBeHighlighted}
-                    />
-                ))}
-            </>
+            {[...Array(props.heap.size)].map((e, index) => (
+                <HeapCellVisualisation
+                    heapToBeHighlighted={props.heapToBeHighlighted}
+                    index={index}
+                    key={index}
+                    type={getCellType(index)}
+                    value={props.heap.values[index]}
+                />
+            ))}
         </div>
     );
 }

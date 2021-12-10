@@ -17,3 +17,10 @@
 .heapCellFull {
     background-color: #6b0504;
 }
+
+.heapCellEmptyMeta {
+    background-color: #3b6b25;
+}
+.heapCellFullMeta {
+    background-color: #520303;
+}
