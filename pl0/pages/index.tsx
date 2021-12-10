@@ -51,7 +51,7 @@ const Home: NextPage = () => {
         if (!model) {
             return;
         }
-        let shouldUpdate: boolean = !instructions[model.pc].explanationParts;
+        let shouldUpdate: boolean = !instructions[model.pc]?.explanationParts;
 
         explainNextInstruction();
         if (shouldUpdate) {
