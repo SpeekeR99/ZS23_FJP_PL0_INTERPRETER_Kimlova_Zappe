@@ -210,7 +210,7 @@ const Home: NextPage = () => {
                         model == null
                             ? null
                             : InstructionsToBeHighlighted(
-                                  instructions[model?.pc ?? 0].explanationParts
+                                  instructions[model?.pc ?? 0]?.explanationParts
                               )
                     }
                 />
@@ -227,7 +227,7 @@ const Home: NextPage = () => {
                                 model == null
                                     ? new Map<number, string>()
                                     : StackToBeHighlighted(
-                                          instructions[model?.pc ?? 0].explanationParts
+                                          instructions[model?.pc ?? 0]?.explanationParts
                                       )
                             }
                         />
@@ -239,7 +239,7 @@ const Home: NextPage = () => {
                                 model == null
                                     ? new Map<number, string>()
                                     : HeapToBeHighlighted(
-                                          instructions[model?.pc ?? 0].explanationParts
+                                          instructions[model?.pc ?? 0]?.explanationParts
                                       )
                             }
                         />
