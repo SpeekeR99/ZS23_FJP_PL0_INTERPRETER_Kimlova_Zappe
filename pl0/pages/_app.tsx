@@ -4,8 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 import '../styles/basic.css';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
+
+import '../i18n';
 
 function MyApp({ Component, pageProps }: AppProps) {
     return (

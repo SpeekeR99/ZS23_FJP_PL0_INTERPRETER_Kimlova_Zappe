@@ -29,6 +29,7 @@ import {
     SplitExplanationMessageParts,
     StackToBeHighlighted,
 } from '../core/highlighting';
+import i18next from 'i18next';
 
 const Home: NextPage = () => {
     const [model, setModel] = useState<DataModel | null>(null);
@@ -183,7 +184,7 @@ const Home: NextPage = () => {
     return (
         <main className={styles.layoutwrapper}>
             <Head>
-                <title>PL/0 interpret</title>
+                <title>{i18next.t('ui:title')} - PL/0 interpret</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
