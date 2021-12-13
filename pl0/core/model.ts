@@ -196,7 +196,7 @@ function PutOntoStack(stack: Stack, index: number, value: number) {
     stack.stackItems[index].value = value;
 }
 
-function ConvertToStackItems(...values: number[]) {
+function ConvertToStackItems(...values: number[]): StackItem[] {
     let items: StackItem[] = [];
     for (let i = 0; i < values.length; i++) {
         items.push({ value: values[i] });

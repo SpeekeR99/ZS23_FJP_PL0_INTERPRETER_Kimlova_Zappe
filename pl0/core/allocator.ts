@@ -56,13 +56,19 @@ export function Allocate(heap: Heap, count: number): number {
  * @returns 0 on success, -1 on failure
  */
 export function Free(heap: Heap, address: number): number {
-    if (address > heap.size - 1 || address < 0) {
+    if (address > heap.size - 1 || address < 2) {
         // Fail on out of bounds
         return -1;
     }
 
     // block size is two to the left of the address
     let blockSize = heap.values[address - 2];
+
+    // To prevent errors while deallocating incorrectly
+    if (address + blockSize > heap.size - 1) {
+        blockSize = heap.size - 1 - address;
+    }
+
     // mark the block as free
     heap.values[address - 1] = 0;
 
