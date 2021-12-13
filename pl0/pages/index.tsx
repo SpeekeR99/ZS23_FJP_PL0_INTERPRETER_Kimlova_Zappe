@@ -184,7 +184,7 @@ const Home: NextPage = () => {
     return (
         <main className={styles.layoutwrapper}>
             <Head>
-                <title>{i18next.t('ui:title')} - PL/0 interpret</title>
+                <title>{i18next.t('ui:title')}</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
@@ -257,10 +257,11 @@ const Home: NextPage = () => {
                     </div>
                 </>
             )}
-            {/*}
-            <div className={styles.footer}>
-                <Footer />
-                        </div>*/}
+            {
+                <div className={styles.footer}>
+                    <Footer />
+                </div>
+            }
         </main>
     );
 };

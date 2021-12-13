@@ -1,3 +1,4 @@
+import { t } from 'i18next';
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Stack, StackItem } from '../../core/model';
@@ -81,10 +82,10 @@ export function StackFrameValue(props: StackFrameValueProps) {
                     <div
                         title={
                             props.orderInStackFrame === 0
-                                ? 'Statická báze volajícího'
+                                ? t('ui:stackSB')
                                 : props.orderInStackFrame === 1
-                                ? 'Dynamická báze volajícího'
-                                : 'Program counter volajícího'
+                                ? t('ui:stackDB')
+                                : t('ui:stackPC')
                         }
                     >
                         {props.orderInStackFrame === 0

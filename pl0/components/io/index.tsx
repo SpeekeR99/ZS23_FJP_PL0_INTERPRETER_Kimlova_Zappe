@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
 import { HeaderWrapper } from '../general/HeaderWrapper';
@@ -17,6 +18,7 @@ type IOProps = {
 };
 
 export function IO(props: IOProps) {
+    const { t, i18n } = useTranslation();
     return (
         <Wrapper>
             <div
@@ -28,10 +30,10 @@ export function IO(props: IOProps) {
                     maxHeight: '100%',
                 }}
             >
-                <HeaderWrapperSemi header={'Vstup'}>
+                <HeaderWrapperSemi header={t('ui:headerInput')}>
                     <Input inputTxt={props.inputTxt} setInputTXT={props.setInputTXT} />
                 </HeaderWrapperSemi>
-                <HeaderWrapperSemi header={'Výstup'} style={{ flexGrow: 1 }}>
+                <HeaderWrapperSemi header={t('ui:headerOutput')} style={{ flexGrow: 1 }}>
                     <Output outputTxt={props.outputTxt} />
                 </HeaderWrapperSemi>
             </div>

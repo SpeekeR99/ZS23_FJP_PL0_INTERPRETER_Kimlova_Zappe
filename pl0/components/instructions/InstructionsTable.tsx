@@ -4,6 +4,7 @@ import { Instruction } from '../../core/model';
 import { InstructionItemView } from './InstructionItemView';
 import styles from '../../styles/instructions.module.css';
 import { InstructionsHighligting } from '../../core/highlighting';
+import { useTranslation } from 'react-i18next';
 
 type InstructionsTableProps = {
     instructions: Instruction[];
@@ -11,15 +12,18 @@ type InstructionsTableProps = {
     instructionsToBeHighlighted: InstructionsHighligting | null;
 };
 export function InstructionsTable(props: InstructionsTableProps) {
+    const { t, i18n } = useTranslation();
     return (
         <Table className={styles.instructionsTable}>
             <thead>
                 <tr>
                     <th style={{ width: '35px' }}></th>
-                    <th style={{ width: '50px' }}>Instrukce</th>
-                    <th style={{ width: '35px' }}>Level</th>
-                    <th style={{ width: '35px' }}>Par</th>
-                    <th>Popis</th>
+                    <th style={{ width: '50px' }}>
+                        {t('ui:instructionsTableInstruction')}
+                    </th>
+                    <th style={{ width: '35px' }}>{t('ui:instructionsTableLevel')}</th>
+                    <th style={{ width: '35px' }}>{t('ui:instructionsTablePar')}</th>
+                    <th>{t('ui:instructionsTableExplanation')}</th>
                 </tr>
             </thead>
             <tbody>

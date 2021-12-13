@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { dark, light, primary } from '../../constants/Colors';
+import { useTranslation } from 'react-i18next';
 
 export function Footer() {
+    const { t, i18n } = useTranslation();
+
     return (
         <div
             style={{
@@ -25,7 +28,7 @@ export function Footer() {
                     color: light,
                 }}
             >
-                Vytvořili Lukáš Vlček a Vojtěch Bartička
+                {t('ui:createdBy')}
             </div>
             <div
                 style={{
@@ -33,7 +36,7 @@ export function Footer() {
                     color: light,
                 }}
             >
-                Semestrální práce z KIV/FJP, FAV ZČU 2021/2022
+                {t('ui:workInfo')}
             </div>
         </div>
     );

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../../styles/stack.module.css';
 
 export function StackSplitter() {
+    const { t, i18n } = useTranslation();
     return (
         <div
             style={{
@@ -10,7 +12,7 @@ export function StackSplitter() {
                 justifyContent: 'center',
                 height: '60px',
             }}
-            title={'Ukazatel stack pointeru'}
+            title={t('ui:stackSPSeparator')}
         >
             <div className={styles.stackSplitter} />
         </div>

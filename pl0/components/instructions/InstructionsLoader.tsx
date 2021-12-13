@@ -8,6 +8,7 @@ import styles from '../../styles/instructions.module.css';
 import { ButtonStyle, IconButton } from '../general/IconButton';
 
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { useTranslation } from 'react-i18next';
 type InstructionsLoaderProps = {
     instructionsLoaded: (
         instructions: Instruction[],
@@ -18,6 +19,7 @@ type InstructionsLoaderProps = {
 };
 
 export function InstructionsLoader(props: InstructionsLoaderProps) {
+    const { t, i18n } = useTranslation();
     const [showModal, setShowModal] = useState(false);
 
     const handleClose = () => setShowModal(false);
@@ -51,7 +53,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
     function ParseErrorsView() {
         return (
             <div>
-                Parsování instrukcí: <OKView value={parseOK} />
+                {t('ui:instructionsParsingState')}: <OKView value={parseOK} />
                 {parseErrors.map((e, index) => (
                     <code key={index} style={{ display: 'block' }}>
                         {e.rowIndex}: {e.error}
@@ -63,7 +65,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
     function ValidationErrorsView() {
         return (
             <div>
-                Validace instrukcí: <OKView value={validationOK} />
+                {t('ui:instructionsValidationState')}: <OKView value={validationOK} />
                 {validationErrors.map((e, index) => (
                     <code key={index} style={{ display: 'block' }}>
                         {e.rowIndex}: {e.error}
@@ -92,23 +94,20 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                 const text = e.target.result;
                 if (text && typeof text == 'string') {
                     setTextInstructions(text);
-                    ShowToast('Soubor s instrukcemi úspěšně načten');
+                    ShowToast(t('ui:inputFileLoaded'));
                 } else {
-                    ShowToast('Nepodařilo se zpracovat soubor s instrukcemi', 'error');
+                    ShowToast(t('ui:inputFileError'), 'error');
                 }
             };
         } else {
-            ShowToast(
-                'Nepodařilo se zpracovat soubor s instrukcemi. Nahráváte textový soubor?',
-                'error'
-            );
+            ShowToast(t('ui:inputFileErrorNotText'), 'error');
         }
 
         reader.readAsText(file);
     }
     function onSave() {
         if (instructions == null) {
-            ShowToast('Nelze uložit, nebyly nalezeny žádné validní instrukce', 'error');
+            ShowToast(t('ui:cannotsaveNoInstructions'), 'error');
             return;
         }
 
@@ -130,7 +129,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
             >
                 <IconButton
                     onClick={handleShow}
-                    text={'Načíst/upravit instrukce'}
+                    text={t('ui:btnLoadInstructions')}
                     icon={faEdit}
                     style={ButtonStyle.STANDARD}
                 />
@@ -149,7 +148,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                 size="lg"
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>Načíst/upravit instrukce</Modal.Title>
+                    <Modal.Title>{t('ui:instructionsModalHeader')}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <input type="file" onChange={onFileAdded} />
@@ -171,14 +170,14 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>
-                        Zrušit
+                        {t('ui:btnCancel')}
                     </Button>
                     <Button
                         variant="primary"
                         disabled={!(parseOK && validationOK && instructions != null)}
                         onClick={onSave}
                     >
-                        Uložit
+                        {t('ui:btnSave')}
                     </Button>
                 </Modal.Footer>
             </Modal>

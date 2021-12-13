@@ -11,6 +11,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ButtonStyle, IconButton } from '../general/IconButton';
+import Select, { SingleValue } from 'react-select';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
+const options = [
+    { value: 'cs', label: 'Čeština' },
+    { value: 'en', label: 'English' },
+];
 
 type ControlPanelProps = {
     models: DataModel[];
@@ -25,6 +32,8 @@ type ControlPanelProps = {
     canContinue: () => boolean;
 };
 export function ControlPanel(props: ControlPanelProps) {
+    const { t, i18n } = useTranslation();
+
     return (
         <div
             style={{
@@ -40,32 +49,62 @@ export function ControlPanel(props: ControlPanelProps) {
                 <IconButton
                     onClick={props.previous}
                     disabled={!props.models || !props.models.length}
-                    text={'Krok zpět'}
+                    text={t('ui:bntBack')}
                     icon={faStepBackward}
                 />
                 <IconButton
                     onClick={props.nextStep}
                     disabled={!props.canContinue()}
-                    text={'Krok vpřed'}
+                    text={t('ui:btnForward')}
                     icon={faStepForward}
                     style={ButtonStyle.STANDARD}
                 />
                 <IconButton
                     onClick={props.play}
                     disabled={!props.model}
-                    text={'Spustit'}
+                    text={t('ui:btnPlay')}
                     icon={faPlay}
                     style={ButtonStyle.STANDARD}
                 />
                 <IconButton
                     onClick={props.start}
                     disabled={!props.model}
-                    text={'Obnovit'}
+                    text={t('ui:btnReset')}
                     icon={faRedo}
                     style={ButtonStyle.DANGER}
                 />
             </div>
+            {
+                <div
+                    style={{
+                        marginRight: '30px',
+                        fontSize: 'small',
+                        position: 'absolute',
+                        right: 0,
+                    }}
+                >
+                    <Select
+                        options={options}
+                        placeholder={'Vyberte jazyk'}
+                        defaultValue={
+                            options.filter((o) => o.value == i18next.language)[0]
+                        }
+                        // @ts-ignore
+                        onChange={(
+                            newValue: SingleValue<{
+                                value: string;
+                                label: string;
+                            }>,
+                            index: number
+                        ) => {
+                            i18next.changeLanguage(newValue?.value ?? 'cs');
+                        }}
+                    />
+                </div>
+            }
+
             {/*
+
             <div
                 style={{
                     marginRight: '30px',

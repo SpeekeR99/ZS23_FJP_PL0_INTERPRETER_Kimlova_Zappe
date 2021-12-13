@@ -5,6 +5,7 @@ import { TransformStackFrames } from '../../core/uitransofmation';
 import styles from '../../styles/heap.module.css';
 import classNames from 'classnames';
 import { GetValueFromHeap } from '../../core/allocator';
+import { useTranslation } from 'react-i18next';
 
 type HeapCellVisualisationProps = {
     index: number;
@@ -14,6 +15,8 @@ type HeapCellVisualisationProps = {
 };
 
 export function HeapCellVisualisation(props: HeapCellVisualisationProps) {
+    const { t, i18n } = useTranslation();
+
     const index = props.index;
     const highlightedColor: string | null = props.heapToBeHighlighted.has(index)
         ? props.heapToBeHighlighted.get(index) ?? null
@@ -41,13 +44,13 @@ export function HeapCellVisualisation(props: HeapCellVisualisationProps) {
     function getCellTypeName() {
         switch (props.type) {
             case HeapCellType.NOT_ALLOCATED:
-                return 'Nealokováno';
+                return t('ui:notAllocated');
             case HeapCellType.NOT_ALLOCATED_META:
-                return 'Nealokováno, obsahuje metadata bloku';
+                return t('ui:notAllocatedMeta');
             case HeapCellType.ALLOCATED_META:
-                return 'Alokováno, obsahuje metadata bloku';
+                return t('ui:allocatedMeta');
             case HeapCellType.ALLOCATED_DATA:
-                return 'Alokováno';
+                return t('ui:allocated');
         }
     }
 
@@ -72,11 +75,14 @@ export function HeapCellVisualisation(props: HeapCellVisualisationProps) {
                     : {}
             }
             title={
-                'Index: ' +
+                t('ui:heapCellIndex') +
+                ': ' +
                 index.toString() +
                 '\n' +
                 getCellTypeName() +
-                (showValue() && '\nHodnota: ' + props.value)
+                (showValue() == true
+                    ? '\n' + t('ui:heapCellValue') + ':' + props.value
+                    : '')
             }
         >
             {showValue() && props.value}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
 import { HeaderWrapper } from '../general/HeaderWrapper';
@@ -10,8 +11,9 @@ type WarningsViewProps = {
 };
 
 export function WarningsView(props: WarningsViewProps) {
+    const { t, i18n } = useTranslation();
     return (
-        <HeaderWrapper header={'Varování'}>
+        <HeaderWrapper header={t('ui:headerWarnings')}>
             <>
                 {props.warnings?.map((w, index) => (
                     <code style={{ display: 'block' }}>

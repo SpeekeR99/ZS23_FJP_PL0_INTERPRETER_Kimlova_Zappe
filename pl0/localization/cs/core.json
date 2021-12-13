@@ -15,7 +15,6 @@
     "modelINTStackLow": "Pokus o snížení SP na -2",
     "modelINTStackFrameLow": "Pokus o snížení SP pod aktuální stack frame",
     "modelUnknownOPR": "Neznámá OPR operace ",
-
     "explainerLIT": "Přidá hodnotu %1 na vrchol zásobníku",
     "explainerINT": "Zvýší vrchol zásobníku o %1",
     "explainerJMP": "Skočí na instrukci %1",

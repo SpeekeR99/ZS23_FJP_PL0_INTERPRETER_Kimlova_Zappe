@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { InstructionsHighligting } from '../../core/highlighting';
 import { Instruction } from '../../core/model';
 import { PreprocessingError } from '../../core/validator';
@@ -23,8 +24,9 @@ type InstructionProps = {
 };
 
 export function Instructions(props: InstructionProps) {
+    const { t, i18n } = useTranslation();
     return (
-        <HeaderWrapper header={'Instrukce'}>
+        <HeaderWrapper header={t('ui:headerInstructions')}>
             <InstructionsLoader
                 instructionsLoaded={props.instructionsLoaded}
                 pc={props.pc}

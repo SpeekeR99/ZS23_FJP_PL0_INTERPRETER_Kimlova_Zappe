@@ -13,7 +13,6 @@ import uien from './localization/en/ui.json';
 import corecs from './localization/cs/core.json';
 import coreen from './localization/en/core.json';
 
-console.log('init');
 i18n
     // load translation using http -> see /public/locales (i.e. https://github.com/i18next/react-i18next/tree/master/example/react/public/locales)
     // learn more: https://github.com/i18next/i18next-http-backend

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { ExplanationMessagePart } from '../../core/highlighting';
 import { Stack } from '../../core/model';
 import { TransformStackFrames } from '../../core/uitransofmation';
@@ -17,12 +18,14 @@ type StackProps = {
 };
 
 export function Stack(props: StackProps) {
+    const { t, i18n } = useTranslation();
+
     if (!props.stack || !props.sp) {
         return null;
     }
 
     return (
-        <HeaderWrapper header={'Zásobník'}>
+        <HeaderWrapper header={t('ui:headerStack')}>
             <>
                 <div
                     style={{
@@ -32,10 +35,10 @@ export function Stack(props: StackProps) {
                     }}
                 >
                     <div>
-                        SP: <b>{props.sp}</b>
+                        {t('ui:stackSP')}: <b>{props.sp}</b>
                     </div>
                     <div>
-                        Báze: <b>{props.base}</b>
+                        {t('ui:stackBase')}: <b>{props.base}</b>
                     </div>
                 </div>
                 <hr />
