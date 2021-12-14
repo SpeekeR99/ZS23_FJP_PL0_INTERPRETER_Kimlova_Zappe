@@ -1,3 +1,7 @@
+# Usage
+
+# Architecture
+
 ## Model
 
 Model (or interpreter) in implemented in <code>core/model.ts</code>. It performs all the instructions passed to it. The main interface, which describes the model's state is <code>DataModel</code>, which contains
@@ -12,7 +16,7 @@ Model (or interpreter) in implemented in <code>core/model.ts</code>. It performs
 
 Note that all the operations performed on the stack or heap require passing the stack or heap to the functions.
 
-The operation to perform and the model state is defined trough the <code>InstructionStepParameters</code> interface, which contains the <code>DataModel</code>, an array of <code>Instruction</code> interfaces, which effectively contain the code to be executed and <code>input</code> string, which is passed from the UI and contains the characters present in the input field.
+The operation to perform and the model state is defined trough the <code>InstructionStepParameters</code> interface, which contains the <code>DataModel</code>, an array of <code>Instruction</code> interfaces, which effectively contain the code to be executed, and <code>input</code> string, which is passed from the UI and contains the characters present in the input field.
 
 Instructions are defined by the <code>Instruction</code> interface, which contains the <code>index</code>, <code>InstructionType</code> (an <code>enum</code> which contains all the valid instructions), <code>level</code> and <code>parameter</code> (also address or <code>A</code> in <code>L,A</code>). The <code>explanationParts</code> attribute is used solely by the UI and is of no importance to the model.
 
@@ -58,7 +62,7 @@ For the model to perform a step, the <code>DoStep(params: InstructionStepParamet
 
 In the <code>DoStep</code> function is a large <code>switch</code> statement, where all the instructions are. At the end of the function a check if the program counter is out-of-bounds (pointing to a non-existent instruction) is performed and <code>UpdateHeapBlocks</code> is called (see down in the Allocator).
 
-Then there is the <code>PerformINT</code> function, which takes care of the <code>INT</code> instruction including negative parameter, stack frame incrementing and decrementing. It does not allow to decrease the stack pointer under the current stack frame or the stakc pointer to go under -1. Last but no least the <code>PerformOPR</code> function, which takes care of the <code>OPR</code> instruction and returns the new stack pointer.
+Then there is the <code>PerformINT</code> function, which takes care of the <code>INT</code> instruction including negative parameter, stack frame incrementing and decrementing. It does not allow to decrease the stack pointer under the current stack frame or the stakc pointer to go under -1. Last but not least the <code>PerformOPR</code> function, which takes care of the <code>OPR</code> instruction and returns the new stack pointer.
 
 ## Allocator
 
@@ -88,14 +92,69 @@ Allocator takes care of allocating and freeing memory in addition to all interac
         -   <code>dataSize</code>, which is the size of the data block, which would correspond to the number of cells the user allocated trough <code>NEW</code> instruction, aka the <code>count</code> parameter if the <code>Allocate</code> function.
         -   <code>free</code>, which is whether the block is free (<code>true</code>) or not (<code>false</code>).
         -   <code>allocatorInfoIndices</code>, which is an array of indices in the heap, which contain allocator-only information. The indices should be passed relative to the start of the heap (index 0), not relative to the block start.
-    -   In short, the function looks at the <code>Heap.values</code> array and converts it into these blocks - creates the array of <code>HeapBlock</code>s and sets it as the <code>Heap.heapBlocks</code>. If the function is not implemented correctly, the UI won't show the heap state correctly.
+    -   In short, the function looks at the <code>Heap.values</code> array and converts it into these blocks - creates an array of <code>HeapBlock</code>s and sets it as the <code>Heap.heapBlocks</code>. If the function is not implemented correctly, the UI won't show the heap state correctly.
 
 ## Explainer
 
-### Calling the explainer
+Explainer is implemented in <code>code/explainer.ts</code>. The explainer is neccessary for the UI to be able to show the instruction descriptions a highlight values on stack and heap. The explainer is essentially a copy of the model (interpreter) which operates with the same <code>Stack</code>, <code>Heap</code> and <code>InstructionStepParameters</code> (in fact the <code>Heap</code> and <code>Stack</code> are the same object that are passed to the model's <code>DoStep</code> function). This means that explainer cannot make any changes to the <code>DataModel</code>'s state.
 
-## Scenarios
+Before an instruction is executed (model's <code>DoStep</code> function is called) the explainer's <code>ExplainInstruction</code> function in called. This instruction emulates how the model will behave when it executes the instruction. This function returns an <code>Explanation</code> interface, which has:
 
-### Adding a new instruction
+-   <code>message: string</code> - this contains the message that is shown on the right side of the instructions part of the UI. The UI can do simple templating - the <code>message</code> string can contain single characters prefixed with the <code>%</code> character (e.g. <code>Saves the value on top of the stack (%1) to level %2 address %3 of the stack</code>). These characters are then replaced by values defined in the <code>placeholders</code> array.
+-   <code>placeholders: Placeholder[]</code> - an array of <code>Placeholder</code> interfaces.
 
-### Changing the allocator
+The <code>Placeholder</code> interface is used to replace a single <code>%char</code> placeholder with a value. Additionally it provides ways to tell the UI what to highlight. It contains
+
+-   <code>placeholder: string</code> - what to replace without the <code>%</code> (e.g. for <code>%1</code> this would be <code>1</code>)
+-   <code>value: number</code> - what to replace it with (e.g. for <code>value = 1000, </code> <code>%1 -> 1000</code>)
+-   <code>stack: number[]</code> - an array of indices in the stack to highlight with a relation to the placeholder
+-   <code>heap: number[]</code> - an array of indices in the heap to highlight with a relation to the placeholder
+-   <code>instructions: number[]</code> - currently not used
+-   <code>level: boolean</code> - if <code>true</code> the instruction's level is highlighted
+-   <code>parameter: boolean</code> - if <code>true</code> the instruction's parameter (A) is highlighted
+-   <code>input: boolean</code> - if <code>true</code> highlights the input field
+-   <code>output: boolean</code> - if <code>true</code> highlights the output field
+-   <code>highlightType: HighlightType</code> - not used.
+
+As an example we can look at the <code>PST</code> instruction. The <code>message</code> is <code>"Saves the value %1 to level %2 and address %3 of the stack (index %4)"</code>. The instruction loads all the values neccessary from stack.
+
+-   The first placeholder would have <code>placeholder = '1'</code>, as <code>value</code> the value to be stored and in the <code>stack</code> array the index of the value used (aka where we got it from the stack).
+-   The second placeholder would have <code>placeholder = '2'</code>, as <code>value</code> the value to be stored and in the <code>stack</code> array the index of the value used (aka where we got it from the stack). Additionally, we could use the explainer's <code>FindBases</code> function to get an array of indices, which point to the bases used in the base resolution. We then add all those indices to the <code>stack</code> array, highlighting them.
+-   The third placeholder would have <code>placeholder = '3'</code>, as <code>value</code> the value to be stored and in the <code>stack</code> array the index of the value used (aka where we got it from the stack).
+-   The fourth placeholder would have <code>placeholder = '4'</code>, as <code>value</code> the value to be stored and in the <code>stack</code> array the index to highlight (in this case it would be the resolved base + address).
+
+If this is all confusing, it should be more understandable from the code - look at how the explanations are produced for the instructions and what visualisation they produce.
+
+Additionally, all the string are externalized so the UI can be localized. See more down below in the Localization section.
+
+## Validator
+
+The validator is implemented in the <code>core/validator.ts</code> file. The validation is done trough the <code>ParseAndValidate</code> function, where the input is the entire content of the input area from UI. This input is then split into lines and cleaned of whitespaces. Then for each line parsing is done - in this process non-existent instructions are detected. For this the <code>stringInstructionMap</code> is used, which contains as keys the string defining the instructions (e.g. <code>"OPR"</code>) and as values the corresponding <code>enum InstructionType</code>. All the instructions have to be present in this map, otherwise the validator will throw a parse error.
+
+Then validation is performed - this makes sure that the instruction indexing is done right and that the levels and parameters of the instructions are valid.
+
+## UI
+
+... TODO @lukasvlc3k
+
+## Localization
+
+... TODO @lukasvlc3k
+
+# Adding stuff
+
+## Adding a new instruction
+
+When adding a new instructions there are multiple steps:
+
+1. Add the instruction to <code>InstructionType</code> in <code>model.ts</code> and add the instruction string -> <code>InstructionType</code> mapping to <code>stringInstructionMap</code> in <code>validator.ts</code>. In the validator, add the instruction to the large switch if desired (it does not need to be there, but validation will not be performed for the instruction).
+2. Implement the instruction in <code>model.ts</code> <code>DoStep</code> function (add it to the large switch there).
+3. Add the explanation to <code>explainer.ts</code> - if this is not done, the explainer will do weird stuff. If you don't want to create an explanation, you can just leave the message and placeholders array empty. In that case, nothing will be highlighted but it will not throw exceptions.
+
+## Changing the allocator
+
+What the allocator needs to implement is in the Allocator section. The information there should be sufficient is describing how the allocator is expected to behave outwardly.
+
+## Adding a new translation
+
+... TODO @lukasvlc3k

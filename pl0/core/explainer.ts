@@ -65,7 +65,7 @@ function GetValuesFromStack(
     stack: Stack,
     index: number,
     count: number,
-    decrementCurrentFrame: boolean = true
+    decrementCurrentFrame: boolean = false
 ): number[] {
     let retvals: number[] = [];
     for (let i = 0; i < count; i++) {
@@ -73,19 +73,8 @@ function GetValuesFromStack(
             throw new Error(i18next.t('core:modelStackNegativeError'));
         }
         retvals.push(stack.stackItems[index - i].value);
-        /*if (decrementCurrentFrame) {
-            stack.stackFrames[stack.stackFrames.length - 1].size--;
-        }*/
     }
     return retvals;
-}
-
-// Checks if stack size is larger than the maximum permissible value
-function CheckStackSize(stack: Stack) {
-    if (stack.stackItems.length > stack.maxSize) {
-        return false;
-    }
-    return true;
 }
 
 // Checks if SP is not pointing under the stack
