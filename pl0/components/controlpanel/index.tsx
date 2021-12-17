@@ -14,6 +14,8 @@ import { ButtonStyle, IconButton } from '../general/IconButton';
 import Select, { SingleValue } from 'react-select';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { Help } from './Help';
 const options = [
     { value: 'cs', label: 'Čeština' },
     { value: 'en', label: 'English' },
@@ -45,6 +47,19 @@ export function ControlPanel(props: ControlPanelProps) {
                 padding: '20px',
             }}
         >
+            <div
+                style={{
+                    marginLeft: '10px',
+                    fontSize: 'small',
+                    position: 'absolute',
+                    left: 0,
+                    display: 'flex',
+                    flexDirection: 'row',
+                }}
+            >
+                <Help />
+            </div>
+
             <div>
                 <IconButton
                     onClick={props.previous}
@@ -81,6 +96,8 @@ export function ControlPanel(props: ControlPanelProps) {
                         fontSize: 'small',
                         position: 'absolute',
                         right: 0,
+                        display: 'flex',
+                        flexDirection: 'row',
                     }}
                 >
                     <Select

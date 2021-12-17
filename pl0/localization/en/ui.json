@@ -43,6 +43,9 @@
     "stackDB": "Caller dynamic base",
     "stackPC": "Caller program counter",
 
+    "help": "Help",
+    "ok": "Ok",
+
     "createdBy": "Created by Lukáš Vlček and Vojtěch Bartička",
     "workInfo": "Semestral work for KIV/FJP, FAV ZČU 2021/2022"
 }

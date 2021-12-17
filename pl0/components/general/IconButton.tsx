@@ -15,6 +15,7 @@ type ButtonProps = {
     style?: ButtonStyle;
     onClick: () => void;
     disabled?: boolean;
+    className?: any;
 };
 export function IconButton(props: ButtonProps) {
     return (
@@ -27,7 +28,7 @@ export function IconButton(props: ButtonProps) {
                     : props.style === ButtonStyle.SECONDARY
                     ? styles.buttonSecondary
                     : styles.buttonStandard
-            }`}
+            } ${props.className}`}
             onClick={props.onClick}
             disabled={props.disabled}
         >

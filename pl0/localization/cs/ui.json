@@ -43,6 +43,9 @@
     "stackDB": "Dynamická báze volajícího",
     "stackPC": "Program counter volajícího",
 
+    "help": "Nápověda", 
+    "ok": "Ok",
+    
     "createdBy": "Vytvořili Lukáš Vlček a Vojtěch Bartička",
     "workInfo": "Semestrální práce z KIV/FJP, FAV ZČU 2021/2022"
 }
