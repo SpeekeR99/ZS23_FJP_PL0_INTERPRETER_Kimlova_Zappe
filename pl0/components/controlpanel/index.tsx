@@ -16,7 +16,8 @@ import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { Help } from './Help';
-const options = [
+
+const languageOptions = [
     { value: 'cs', label: 'Čeština' },
     { value: 'en', label: 'English' },
 ];
@@ -101,10 +102,10 @@ export function ControlPanel(props: ControlPanelProps) {
                     }}
                 >
                     <Select
-                        options={options}
+                        options={languageOptions}
                         placeholder={'Vyberte jazyk'}
                         defaultValue={
-                            options.filter((o) => o.value == i18next.language)[0]
+                            languageOptions.filter((o) => o.value == i18next.language)[0]
                         }
                         // @ts-ignore
                         onChange={(
