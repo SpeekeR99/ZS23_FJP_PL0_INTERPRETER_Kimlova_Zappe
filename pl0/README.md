@@ -157,7 +157,7 @@ Becase all the data are stored in <code>DataModel</code>, changing <code>model</
 
 The translation files are devided into UI and Core namespace. The translation source files are stored in a json format in a file <code>/localization/[language]/[namespace].json</code>.
 
-# Sxpansion scenarios
+# Expansion scenarios
 
 ## Adding a new instruction
 
