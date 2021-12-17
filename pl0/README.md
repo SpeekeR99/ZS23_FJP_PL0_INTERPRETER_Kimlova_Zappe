@@ -184,3 +184,13 @@ Add a new text to all the translations files <code>/localization/[language]/[nam
 3. Do translations.
 4. Register the new language in <code>/i18n.js</code> settings: add the language to <code>supportedLngs</code> array and add json files containing translations to resources part of settings.
 5. Add a new language to <code>languageOptions</code> array in <code>/components/controlPanel/index.tsx</code>. The <code>value</code> must match the code of the language being added.
+
+# Build and deployment
+
+This project uses yarn as a package manager. Dependencies are (as usually) stored in <code>package.json</code> file.
+
+To run/edit this project, you need to download and install all dependencies first. For that you can use command <code>yarn</code> with no arguments (working directory = root directory of this project containing <code>package.json</code> file).
+
+To run or debug a project loccally, use command <code>yarn dev</code>.
+
+If you want to deploy this project to an envirnment without node.js server, you can export a static html and js files using <code>yarn export</code>. This export command will prepare files for deployment in directory <code>/out</code> (all the files in that folder need to be copied to the server).
