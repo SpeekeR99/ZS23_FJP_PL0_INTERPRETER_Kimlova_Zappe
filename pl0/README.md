@@ -135,13 +135,29 @@ Then validation is performed - this makes sure that the instruction indexing is 
 
 ## UI
 
-... TODO @lukasvlc3k
+### Technology
+
+UI part is based on React and Next.js framework. All the pages and components are programmed as React Function Components and all components are using TypeScript when possible.
+
+### Structure
+
+UI consists of a main page (located in <code>/pages/index.tsx</code>) and several components. General components, such as Header or Buttons, are located in a folder <code>/components/general</code> in a file with the appropriate name (<code>.tsx</code>). UI parts (such as Instructions, Stack, Heap, Input etc.) are located in a separated folders (in <code>/components</code> directory), where <code>index.tsx</code> is the main part of the component responsible for importing all other necessary parts.
+
+### Connection of Data Model and React
+
+To achieve reactivity of the UI, we use React Hooks. The most imporortant ones can be found in <code>/pages/index.tsx</code>, where the **instructions**, **current model** and **previous models** are stored.
+
+Becase React (version 17.0) does not re-render View when an property of object in a state is changed, it is needed to invoke the re-rendering somehow. We achieve that by increasing state called "version" (defined in version useState hook).
+
+Becase all the data are stored in <code>DataModel</code>, changing <code>model</code> state to a new (different) model ensure that the correct values are shown in each component.
 
 ## Localization
 
-... TODO @lukasvlc3k
+<code>i18next</code> is the library responsible for localization in this project. The main config of this library can be found in a file <code>/i88n.js</code>. It uses LanguageDetector plugin to provide automatic detection of language from browser settings.
 
-# Adding stuff
+The translation files are devided into UI and Core namespace. The translation source files are stored in a json format in a file <code>/localization/[language]/[namespace].json</code>.
+
+# Sxpansion scenarios
 
 ## Adding a new instruction
 
@@ -157,4 +173,14 @@ What the allocator needs to implement is in the Allocator section. The informati
 
 ## Adding a new translation
 
-... TODO @lukasvlc3k
+### New text to be translated
+
+Add a new text to all the translations files <code>/localization/[language]/[namespace].json</code> as a valid json property (for example add a line: <code>"help": "Nápověda",</code> between the first <code>{</code> and the last <code>}</code>.)
+
+### New language
+
+1. Add a directory called by the code of the language you want to add to <code>/localization</code> folder.
+2. Add a <code>.json</code> file for all used namespace (for example <code>core.json</code> and <code>ui.json</code>) to newly created language folder.
+3. Do translations.
+4. Register the new language in <code>/i18n.js</code> settings: add the language to <code>supportedLngs</code> array and add json files containing translations to resources part of settings.
+5. Add a new language to <code>languageOptions</code> array in <code>/components/controlPanel/index.tsx</code>. The <code>value</code> must match the code of the language being added.
