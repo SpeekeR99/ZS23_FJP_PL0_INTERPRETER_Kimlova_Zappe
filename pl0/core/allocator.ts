@@ -72,6 +72,11 @@ export function Free(heap: Heap, address: number): number {
     // mark the block as free
     heap.values[address - 1] = 0;
 
+    // zero the memory
+    for (let i = 0; i < blockSize; i++) {
+        heap.values[address + i] = 0;
+    }
+
     // check right
     if (address + blockSize < heap.size - 1) {
         // We have basically a singly linked list, so we can merge the block only with the
