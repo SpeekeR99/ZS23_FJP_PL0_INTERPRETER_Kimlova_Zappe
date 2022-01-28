@@ -27,7 +27,7 @@ export function Help() {
                 </Modal.Header>
                 <Modal.Body>
                     <div style={{}}>
-                        <h2>Instrukce</h2>
+                        <h2>Instructions</h2>
 
                         {
                             <Table>

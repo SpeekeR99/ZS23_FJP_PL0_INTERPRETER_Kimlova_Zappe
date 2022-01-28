@@ -15,7 +15,7 @@ import Select, { SingleValue } from 'react-select';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
-import { Help } from './Help';
+import { Help } from '../help';
 
 const languageOptions = [
     { value: 'cs', label: 'Čeština' },

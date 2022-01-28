@@ -36,6 +36,8 @@ const Home: NextPage = () => {
     const [models, setModels] = useState<DataModel[]>([]);
 
     const [version, setVersion] = useState<number>(0);
+    const [explainerVersion, setExplainerVersion] = useState<number>(0);
+
     const [inputTxt, setInputTxt] = useState<string>('');
     const [output, setOutputTxt] = useState<string>('');
     const [warnings, setWarnings] = useState<string[]>([]);
@@ -59,6 +61,14 @@ const Home: NextPage = () => {
             setVersion(version + 1);
         }
     }, [model, version]);
+
+    useEffect(() => {
+        if (!model) {
+            return;
+        }
+
+        explainNextInstruction();
+    }, [model, version, inputTxt]);
 
     function instructionsLoaded(
         instructions: Instruction[],
@@ -172,6 +182,8 @@ const Home: NextPage = () => {
             explanation.placeholders
         );
         instructions[model.pc].explanationParts = parseParts;
+
+        setExplainerVersion(explainerVersion + 1);
     }
 
     function resetInstructionsExplanations() {
