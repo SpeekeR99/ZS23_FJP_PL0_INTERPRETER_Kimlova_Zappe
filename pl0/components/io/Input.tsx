@@ -15,7 +15,7 @@ export function Input(props: InputProps) {
     }
 
     return (
-        <input
+        <textarea
             style={{ width: '100%' }}
             type="text"
             value={props.inputTxt}
