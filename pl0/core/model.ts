@@ -405,6 +405,11 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             }
 
             params.model.output += String.fromCharCode(code[0]);
+
+            if (params.model.output.includes("\\n")) {
+                params.model.output = params.model.output.replace("\\n", "\n");
+            }
+
             inputString = inputString.substring(1);
             params.model.sp--;
             params.model.pc++;
