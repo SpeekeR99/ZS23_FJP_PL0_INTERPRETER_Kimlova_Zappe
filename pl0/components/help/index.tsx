@@ -287,9 +287,9 @@ export function Help() {
                                         <td>0</td>
                                         <td>
                                             <p>
-                                                Essentially a dynamic LOD, where the level
+                                                Essentially a dynamic LOD, where the address
                                                 is the value on top of the stack and the
-                                                address the value under it (SP - 1).
+                                                level the value under it (SP - 1).
                                                 Pushes the value on level, address of the
                                                 stack onto the stack.
                                             </p>
@@ -302,9 +302,9 @@ export function Help() {
                                         <td>0</td>
                                         <td>
                                             <p>
-                                                Essentially a dynamic STO, where the level
+                                                Essentially a dynamic STO, where the address
                                                 is the value on top of the stack, the
-                                                address the value under it (SP - 1) and
+                                                level the value under it (SP - 1) and
                                                 the value to be stored is on the index SP
                                                 - 2. Stores the value into level, address
                                                 of the stack.
