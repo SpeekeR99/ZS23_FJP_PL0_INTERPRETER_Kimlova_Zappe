@@ -101,6 +101,7 @@ const Home: NextPage = () => {
         let result = nextStep();
 
         while (result && !result.isEnd) {
+            inputTxt = result.inputNextStep;
             result = nextStep();
         }
     }
