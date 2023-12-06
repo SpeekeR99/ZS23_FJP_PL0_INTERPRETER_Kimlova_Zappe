@@ -34,6 +34,9 @@ export let stringInstructionMap = new Map<string, InstructionType>([
     ['STA', InstructionType.STA],
     ['PLD', InstructionType.PLD],
     ['PST', InstructionType.PST],
+    ["ITR", InstructionType.ITR],
+    ["RTI", InstructionType.RTI],
+    ["OPF", InstructionType.OPF],
 ]);
 
 export let instructionStringMap = new Map<InstructionType, string>([
@@ -54,6 +57,9 @@ export let instructionStringMap = new Map<InstructionType, string>([
     [InstructionType.STA, 'STA'],
     [InstructionType.PLD, 'PLD'],
     [InstructionType.PST, 'PST'],
+    [InstructionType.ITR, 'ITR'],
+    [InstructionType.RTI, 'RTI'],
+    [InstructionType.OPF, 'OPF'],
 ]);
 
 export function ParseAndValidate(input: string): ValidationResult {
@@ -75,15 +81,20 @@ export function ParseAndValidate(input: string): ValidationResult {
     let instructions: Instruction[] = [];
     let validationErrors: PreprocessingError[] = [];
     let parseErrors: PreprocessingError[] = [];
+    let line_counter = 0;
 
     for (let i = 0; i < lines.length; i++) {
         let splitLine = lines[i].trim().split(/\s+/);
 
-        if (splitLine.length < 4) {
+        if (splitLine.length == 3) {
+            splitLine.unshift((line_counter++).toString());
+        }
+
+        if (splitLine.length < 3) {
             parseOK = false;
             parseErrors.push({
                 rowIndex: i,
-                error: i18next.t('core:validatorLessThan4'),
+                error: i18next.t('core:validatorLessThan3'),
             });
             continue;
         } else if (splitLine.length > 4) {
@@ -113,7 +124,8 @@ export function ParseAndValidate(input: string): ValidationResult {
             });
             continue;
         }
-        let parameter = Number(splitLine[3]);
+        let parameter_str = splitLine[3];
+        let parameter = Number(parameter_str);
         if (Number.isNaN(parameter)) {
             parseOK = false;
             parseErrors.push({
@@ -142,6 +154,7 @@ export function ParseAndValidate(input: string): ValidationResult {
             instruction: stringInstructionMap.get(op.toUpperCase()),
             level: level,
             parameter: parameter,
+            parameter_str: parameter_str,
             explanation: null,
         };
         instructions.push(instruction);
@@ -320,6 +333,33 @@ export function ParseAndValidate(input: string): ValidationResult {
                 validationErrors.push({
                     rowIndex: i,
                     error: i18next.t('core:validatorPst'),
+                });
+                continue;
+            }
+        } else if (instruction.instruction == InstructionType.ITR) { /* Integer to float */
+            if (instruction.level != 0 || instruction.parameter != 0) {
+                validationOK = false;
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorItr'),
+                });
+                continue;
+            }
+        } else if (instruction.instruction == InstructionType.RTI) { /* Float to integer */
+            if (instruction.level != 0 || instruction.parameter != 0) {
+                validationOK = false;
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorRti'),
+                });
+                continue;
+            }
+        } else if (instruction.instruction == InstructionType.OPF) { /* Float operation */
+            if (instruction.level != 0 || instruction.parameter < 1 || instruction.parameter > 13) {
+                validationOK = false;
+                validationErrors.push({
+                    rowIndex: i,
+                    error: i18next.t('core:validatorOpfParam'),
                 });
                 continue;
             }

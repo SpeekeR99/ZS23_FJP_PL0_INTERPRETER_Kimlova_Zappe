@@ -31,7 +31,7 @@ export interface Stack {
     stackFrames: StackFrame[];
 }
 export interface StackItem {
-    value: number;
+    value: number | string;
 }
 export interface StackFrame {
     index: number;
@@ -90,6 +90,9 @@ export enum InstructionType {
     STA,
     PLD,
     PST,
+    OPF,
+    ITR,
+    RTI
 }
 
 export enum OperationType {
@@ -113,6 +116,7 @@ export interface Instruction {
     instruction: InstructionType;
     level: number;
     parameter: number;
+    parameter_str: string;
     explanationParts: ExplanationMessagePart[] | null;
 }
 
@@ -150,8 +154,8 @@ function GetValuesFromStack(
     index: number,
     count: number,
     decrementCurrentFrame: boolean = true
-): number[] {
-    let retvals: number[] = [];
+) {
+    let retvals = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
             throw new Error(i18next.t('core:modelStackNegativeError'));
@@ -164,7 +168,7 @@ function GetValuesFromStack(
     return retvals;
 }
 
-function GetValueFromStack(stack: Stack, index: number): number {
+function GetValueFromStack(stack: Stack, index: number) {
     if (index >= stack.stackItems.length) {
         while (stack.stackItems.length - 1 != index) {
             stack.stackItems.push({ value: 0 });
@@ -196,7 +200,7 @@ function PutOntoStack(stack: Stack, index: number, value: number) {
     stack.stackItems[index].value = value;
 }
 
-function ConvertToStackItems(...values: number[]): StackItem[] {
+function ConvertToStackItems(...values: any[]): StackItem[] {
     let items: StackItem[] = [];
     for (let i = 0; i < values.length; i++) {
         items.push({ value: values[i] });
@@ -253,7 +257,7 @@ function CheckSPInBounds(sp: number) {
 function FindBase(stack: Stack, base: number, level: number): number {
     let newBase = base;
     while (level > 0) {
-        newBase = stack.stackItems[newBase].value;
+        newBase = Number(stack.stackItems[newBase].value);
         level--;
 
         if (newBase == 0 && level != 0) {
@@ -276,6 +280,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
     let op = instruction.instruction;
     let level = instruction.level;
     let parameter = instruction.parameter;
+    let parameter_str = instruction.parameter_str;
 
     let heap = params.model.heap;
     let stack = params.model.stack;
@@ -284,12 +289,17 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
     let warnings: string[] = [];
     let isEnd = false;
 
+    let whole_part;
+    let fractional_part;
+    let mantissa;
+    let exponent;
+
     switch (op) {
         case InstructionType.LIT:
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
-                ConvertToStackItems(parameter)
+                ConvertToStackItems(parameter_str)
             );
             params.model.pc++;
             break;
@@ -305,8 +315,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             if (parameter >= params.instructions.length) {
                 throw new Error(
                     i18next.t('core:modelInstructionOutOfBounds1') +
-                        parameter +
-                        i18next.t('core:modelInstructionOutOfBounds2')
+                    parameter +
+                    i18next.t('core:modelInstructionOutOfBounds2')
                 );
             }
             params.model.pc = parameter;
@@ -318,8 +328,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 if (parameter >= params.instructions.length) {
                     throw new Error(
                         i18next.t('core:modelInstructionOutOfBounds1') +
-                            parameter +
-                            i18next.t('core:modelInstructionOutOfBounds2')
+                        parameter +
+                        i18next.t('core:modelInstructionOutOfBounds2')
                     );
                 }
                 params.model.pc = parameter;
@@ -351,8 +361,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             if (parameter >= params.instructions.length) {
                 throw new Error(
                     i18next.t('core:modelInstructionOutOfBounds1') +
-                        parameter +
-                        i18next.t('core:modelInstructionOutOfBounds2')
+                    parameter +
+                    i18next.t('core:modelInstructionOutOfBounds2')
                 );
             }
 
@@ -367,7 +377,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 break;
             }
 
-            var res: number[] = GetValuesFromStack(
+            var res = GetValuesFromStack(
                 params.model.stack,
                 params.model.base + 2,
                 2,
@@ -375,8 +385,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             );
 
             params.model.sp = params.model.base - 1;
-            params.model.pc = res[0];
-            params.model.base = res[1];
+            params.model.pc = Number(res[0]);
+            params.model.base = Number(res[1]);
             params.model.stack.stackFrames.pop();
             break;
         case InstructionType.LOD:
@@ -393,19 +403,24 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var base = FindBase(stack, params.model.base, level);
             var address = base + parameter;
             var res = GetValuesFromStack(stack, params.model.sp, 1);
-            PutOntoStack(stack, address, res[0]);
+            PutOntoStack(stack, address, Number(res[0]));
             params.model.sp--;
             params.model.pc++;
             break;
         case InstructionType.WRI:
             var code = GetValuesFromStack(stack, params.model.sp, 1);
 
-            if (code[0] < 0 || code[0] > 255) {
+            if (Number(code[0]) < 0 || Number(code[0]) > 255) {
                 throw new Error(i18next.t('core:modelReadInvalidInput'));
             }
 
-            params.model.output += String.fromCharCode(code[0]);
+            params.model.output += String.fromCharCode(Number(code[0]));
 
+            if (params.model.output.includes("\\n")) {
+                params.model.output = params.model.output.replace("\\n", "\n");
+            }
+
+            inputString = inputString.substring(1);
             params.model.sp--;
             params.model.pc++;
             break;
@@ -426,7 +441,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var count = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
 
-            if (count[0] <= 0 || count[0] > params.model.heap.size) {
+            if (Number(count[0]) <= 0 || Number(count[0]) > params.model.heap.size) {
                 params.model.sp = PushOntoStack(
                     stack,
                     params.model.sp,
@@ -436,7 +451,7 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 params.model.sp = PushOntoStack(
                     stack,
                     params.model.sp,
-                    ConvertToStackItems(Allocate(heap, count[0]))
+                    ConvertToStackItems(Allocate(heap, Number(count[0])))
                 );
             }
             params.model.pc++;
@@ -445,24 +460,24 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             var addr = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
             params.model.pc++;
-            if (Free(heap, addr[0]) != 0) {
+            if (Free(heap, Number(addr[0])) != 0) {
                 throw new Error(
                     i18next.t('core:modelFreeBlockNotAllocated1') +
-                        addr +
-                        i18next.t('core:modelFreeBlockNotAllocated2')
+                    addr +
+                    i18next.t('core:modelFreeBlockNotAllocated2')
                 );
             }
             break;
         case InstructionType.LDA:
-            var addr: number[] = GetValuesFromStack(stack, params.model.sp, 1);
+            var addr = GetValuesFromStack(stack, params.model.sp, 1);
             params.model.sp--;
-            var val = GetValueFromHeap(heap, addr[0]);
+            var val = GetValueFromHeap(heap, Number(addr[0]));
             if (val === null) {
                 throw new Error(
                     i18next.t('core:modelHeapAccessUndefined1') +
-                        addr[0] +
-                        i18next.t('core:modelHeapAccessUndefined2') +
-                        heap.size
+                    addr[0] +
+                    i18next.t('core:modelHeapAccessUndefined2') +
+                    heap.size
                 );
             } else if (Number.isNaN(val)) {
                 throw new Error(i18next.t('core:modelHeapAccessUnallocated') + addr[0]);
@@ -475,15 +490,15 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.pc++;
             break;
         case InstructionType.STA:
-            var addr: number[] = GetValuesFromStack(stack, params.model.sp, 2);
+            var addr = GetValuesFromStack(stack, params.model.sp, 2);
             params.model.sp -= 2;
-            var r = PutValueOnHeap(heap, addr[1], addr[0]);
+            var r = PutValueOnHeap(heap, Number(addr[1]), Number(addr[0]));
             if (r == -1) {
                 throw new Error(
                     i18next.t('core:modelHeapAccessUndefined1') +
-                        addr[1] +
-                        i18next.t('core:modelHeapAccessUndefined2') +
-                        heap.size
+                    addr[1] +
+                    i18next.t('core:modelHeapAccessUndefined2') +
+                    heap.size
                 );
             } else if (r == -2) {
                 throw new Error(i18next.t('core:modelHeapAccessUnallocated') + addr[0]);
@@ -491,21 +506,61 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             params.model.pc++;
             break;
         case InstructionType.PLD:
-            var values: number[] = GetValuesFromStack(stack, params.model.sp, 2);
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
             params.model.sp -= 2;
-            var base = FindBase(stack, params.model.base, values[1]);
+            var base = FindBase(stack, params.model.base, Number(values[1]));
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
-                ConvertToStackItems(GetValueFromStack(stack, base + values[0]))
+                ConvertToStackItems(GetValueFromStack(stack, base + Number(values[0])))
             );
             params.model.pc++;
             break;
         case InstructionType.PST:
-            var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
+            var values = GetValuesFromStack(stack, params.model.sp, 3);
             params.model.sp -= 3;
-            var base = FindBase(stack, params.model.base, values[1]);
-            PutOntoStack(stack, base + values[0], values[2]);
+            var base = FindBase(stack, params.model.base, Number(values[1]));
+            PutOntoStack(stack, base + Number(values[0]), Number(values[2]));
+            params.model.pc++;
+            break;
+        case InstructionType.OPF:
+            params.model.sp = PerformOPF(stack, parameter, params.model.sp);
+            params.model.pc++;
+            break;
+        case InstructionType.ITR: /* Integer to real */
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
+            params.model.sp -= 2;
+
+            whole_part = values[1].toString();
+            fractional_part = values[0].toString();
+
+            /* Convert to mantissa and exponent in base 10 */
+            mantissa = Number(whole_part + fractional_part);
+            exponent = -1 * Number(fractional_part.length);
+
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
+            params.model.pc++;
+            break;
+        case InstructionType.RTI: /* Real to integer */
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
+            params.model.sp -= 2;
+
+            mantissa = values[0].toString();
+            exponent = Number(values[1]);
+
+            /* Convert to whole and fractional part */
+            whole_part = mantissa.substring(0, mantissa.length + exponent);
+            fractional_part = mantissa.substring(mantissa.length + exponent, mantissa.length);
+
+            params.model.sp = PushOntoStack(
+                stack,
+                params.model.sp,
+                ConvertToStackItems(whole_part, fractional_part)
+            );
             params.model.pc++;
             break;
         default:
@@ -555,25 +610,27 @@ function PerformINT(stack: Stack, sp: number, count: number) {
 
 function PerformOPR(stack: Stack, operation: number, sp: number): number {
     let e_op = operation as OperationType;
-    let operands: number[];
+    let operands;
     switch (e_op) {
         case OperationType.U_MINUS:
-            stack.stackItems[sp].value *= -1;
+            let val = Number(stack.stackItems[sp].value);
+            val *= -1;
+            stack.stackItems[sp].value = val;
             break;
         case OperationType.ADD:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
-            sp = PushOntoStack(stack, sp, ConvertToStackItems(operands[0] + operands[1]));
+            sp = PushOntoStack(stack, sp, ConvertToStackItems(Number(operands[0]) + Number(operands[1])));
             break;
         case OperationType.SUB:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
-            sp = PushOntoStack(stack, sp, ConvertToStackItems(operands[1] - operands[0]));
+            sp = PushOntoStack(stack, sp, ConvertToStackItems(Number(operands[1]) - Number(operands[0])));
             break;
         case OperationType.MULT:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
-            sp = PushOntoStack(stack, sp, ConvertToStackItems(operands[0] * operands[1]));
+            sp = PushOntoStack(stack, sp, ConvertToStackItems(Number(operands[0]) * Number(operands[1])));
             break;
         case OperationType.DIV:
             operands = GetValuesFromStack(stack, sp, 2);
@@ -581,7 +638,7 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             sp = PushOntoStack(
                 stack,
                 sp,
-                ConvertToStackItems(Math.floor(operands[1] / operands[0]))
+                ConvertToStackItems(Math.floor(Number(operands[1]) / Number(operands[0])))
             );
             break;
         case OperationType.MOD:
@@ -590,13 +647,13 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             sp = PushOntoStack(
                 stack,
                 sp,
-                ConvertToStackItems(Math.floor(operands[1] % operands[0]))
+                ConvertToStackItems(Math.floor(Number(operands[1]) % Number(operands[0])))
             );
             break;
         case OperationType.IS_ODD:
             operands = GetValuesFromStack(stack, sp, 1);
             sp -= 1;
-            sp = PushOntoStack(stack, sp, ConvertToStackItems(operands[0] % 2));
+            sp = PushOntoStack(stack, sp, ConvertToStackItems(Number(operands[0]) % 2));
             break;
         case OperationType.EQ:
             operands = GetValuesFromStack(stack, sp, 2);
@@ -651,6 +708,69 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
                 sp,
                 ConvertToStackItems(operands[1] <= operands[0] ? 1 : 0)
             );
+            break;
+        default:
+            throw new Error(i18next.t('core:modelUnknownOPR') + OperationType[e_op]);
+    }
+
+    return sp;
+}
+
+function PerformOPF(stack: Stack, operation: number, sp: number): number {
+    let e_op = operation as OperationType;
+    let operands;
+    switch (e_op) {
+        case OperationType.U_MINUS:
+            operands = GetValuesFromStack(stack, sp, 2);
+            sp -= 2;
+            break;
+        case OperationType.ADD:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.SUB:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.MULT:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.DIV:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.MOD:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.IS_ODD:
+            operands = GetValuesFromStack(stack, sp, 2);
+            sp -= 2;
+            break;
+        case OperationType.EQ:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.N_EQ:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.LESS_THAN:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.MORE_EQ_THAN:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.MORE_THAN:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
+            break;
+        case OperationType.LESS_EQ_THAN:
+            operands = GetValuesFromStack(stack, sp, 4);
+            sp -= 4;
             break;
         default:
             throw new Error(i18next.t('core:modelUnknownOPR') + OperationType[e_op]);

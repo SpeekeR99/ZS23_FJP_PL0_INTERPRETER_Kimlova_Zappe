@@ -64,7 +64,7 @@
     "explainerOPR12": "Test 'větší než' prvních dvou hodnot na vrcholu zásobníku (%2 > %1)",
     "explainerOPR13": "Test 'menší nebo rovno' prvních dvou hodnot na vrcholu zásobníku (%2 <= %1)",
 
-    "validatorLessThan4": "Řádka obsahuje méně než 4 parametry",
+    "validatorLessThan3": "Řádka obsahuje méně než 3 parametry",
     "validatorMoreThan4": "Řádka obsahuje více než 4 parametry",
     "validatorIndexInteger": "Index musí být celé číslo",
     "validatorLevelInteger": "Level (L) musí být celé číslo",
@@ -89,5 +89,8 @@
     "validatorLda": "LDA musí mít level i parametr (A) 0",
     "validatorSta": "STA musí mít level i parametr (A) 0",
     "validatorPld": "PLD musí mít level i parametr (A) 0",
-    "validatorPst": "PST musí mít level i parametr (A) 0"
+    "validatorPst": "PST musí mít level i parametr (A) 0",
+    "validatorItr": "ITR musí mít level i parametr (A) 0",
+    "validatorRti": "RTI musí mít level i parametr (A) 0",
+    "validatorOpfParam": "OPF musí mít parametr (A) mezi 1 a 13"
 }

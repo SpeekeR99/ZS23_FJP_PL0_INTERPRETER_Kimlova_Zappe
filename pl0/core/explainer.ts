@@ -796,7 +796,15 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 input: false,
                 highlightType: HighlightType.BOLD,
             });
-
+            break;
+        case InstructionType.ITR:
+            /* TODO: explain ITR */
+            break;
+        case InstructionType.RTI:
+            /* TODO: explain RTI */
+            break;
+        case InstructionType.OPF:
+            /* TODO: explain OPF */
             break;
         default:
             throw new Error(i18next.t('core:modelNonExistentInstructionError'));

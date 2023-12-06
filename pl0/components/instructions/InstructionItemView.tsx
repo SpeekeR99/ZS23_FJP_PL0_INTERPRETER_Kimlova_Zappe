@@ -71,7 +71,7 @@ export function InstructionItemView(props: InstructionItemViewProps) {
                         : {}
                 }
             >
-                {props.instruction.parameter}
+                {props.instruction.parameter_str}
             </td>
 
             <td>
