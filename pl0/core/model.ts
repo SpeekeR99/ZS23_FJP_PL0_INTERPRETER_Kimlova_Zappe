@@ -535,8 +535,14 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             fractional_part = values[0].toString();
 
             /* Convert to mantissa and exponent in base 10 */
-            mantissa = Number(whole_part + fractional_part);
+            mantissa = Number(whole_part + fractional_part).toString();
             exponent = -1 * Number(fractional_part.length);
+
+            while(mantissa[mantissa.length - 1] == '0') {
+                mantissa = mantissa.substring(0, mantissa.length - 1);
+                exponent++;
+            }
+            mantissa = Number(mantissa);
 
             params.model.sp = PushOntoStack(
                 stack,
@@ -554,6 +560,12 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
 
             /* Convert to whole and fractional part */
             whole_part = mantissa.substring(0, mantissa.length + exponent);
+            if (whole_part.length == 0) {
+                whole_part = '0';
+                while (mantissa.length + exponent < 0) {
+                    mantissa = '0' + mantissa;
+                }
+            }
             fractional_part = mantissa.substring(mantissa.length + exponent, mantissa.length);
 
             params.model.sp = PushOntoStack(
@@ -635,6 +647,9 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
         case OperationType.DIV:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
+            if (Number(operands[0]) == 0) {
+                throw new Error(i18next.t('core:modelDivideByZero'));
+            }
             sp = PushOntoStack(
                 stack,
                 sp,
@@ -719,58 +734,342 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
 function PerformOPF(stack: Stack, operation: number, sp: number): number {
     let e_op = operation as OperationType;
     let operands;
+    let mantissa;
+    let mantissa_1;
+    let mantissa_2;
+    let exponent;
+    let exponent_1;
+    let exponent_2;
+    let exponent_diff;
+    let binary_result;
     switch (e_op) {
         case OperationType.U_MINUS:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
+
+            /* Get mantissa only and change sign */
+            mantissa = operands[0].toString();
+            if (mantissa[0] == '-') {
+                mantissa = mantissa.substring(1);
+            } else {
+                mantissa = '-' + mantissa;
+            }
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(operands[1], mantissa)
+            );
             break;
         case OperationType.ADD:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Add mantissas */
+            mantissa = mantissa_1 + mantissa_2;
+            /* Pick the "bigger" exponent in term of absolute value */
+            exponent = Math.min(exponent_1, exponent_2);
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
             break;
         case OperationType.SUB:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Subtract mantissas */
+            mantissa = mantissa_1 - mantissa_2;
+            /* Pick the "bigger" exponent in term of absolute value */
+            exponent = Math.min(exponent_1, exponent_2);
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
             break;
         case OperationType.MULT:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Multiply mantissas */
+            mantissa = mantissa_1 * mantissa_2;
+            /* Add exponents */
+            exponent = exponent_1 + exponent_2;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
             break;
         case OperationType.DIV:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            if (mantissa_2 == 0) {
+                throw new Error(i18next.t('core:modelDivideByZero'));
+            }
+
+            /* Divide mantissas */
+            mantissa = mantissa_1 / mantissa_2;
+            mantissa = mantissa.toString().split('.');
+
+            let whole_part = mantissa[0];
+            let fractional_part = mantissa[1];
+            if (fractional_part == undefined) {
+                fractional_part = '0';
+            }
+
+            /* Convert to mantissa and exponent in base 10 */
+            mantissa = Number(whole_part + fractional_part);
+            exponent = -1 * Number(fractional_part.length);
+
+            /* Add exponents */
+            exponent += exponent_1 - exponent_2;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
+
             break;
         case OperationType.MOD:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Modulo mantissas */
+            mantissa = mantissa_1 % mantissa_2;
+            console.log(mantissa_1 + ' % ' + mantissa_2 + ' = ' + mantissa);
+            exponent = Math.min(exponent_1, exponent_2);
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(exponent, mantissa)
+            );
             break;
         case OperationType.IS_ODD:
             operands = GetValuesFromStack(stack, sp, 2);
             sp -= 2;
+
+            /* Get mantissa and exponent */
+            mantissa = Number(operands[0]);
+            exponent = Number(operands[1]);
+
+            /* Check if mantissa is odd */
+            binary_result = mantissa % 2;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
+
             break;
         case OperationType.EQ:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Compare */
+            binary_result = mantissa_1 == mantissa_2 && exponent_1 == exponent_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         case OperationType.N_EQ:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Compare */
+            binary_result = mantissa_1 != mantissa_2 || exponent_1 != exponent_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         case OperationType.LESS_THAN:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Compare */
+            binary_result = mantissa_1 < mantissa_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         case OperationType.MORE_EQ_THAN:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Compare */
+            binary_result = mantissa_1 >= mantissa_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         case OperationType.MORE_THAN:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Compare */
+            binary_result = mantissa_1 > mantissa_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         case OperationType.LESS_EQ_THAN:
             operands = GetValuesFromStack(stack, sp, 4);
             sp -= 4;
+
+            /* Get mantissa and exponent */
+            mantissa_2 = Number(operands[0]);
+            exponent_2 = Number(operands[1]);
+            mantissa_1 = Number(operands[2]);
+            exponent_1 = Number(operands[3]);
+
+            /* Align exponents */
+            exponent_diff = Math.abs(exponent_1 - exponent_2);
+            if (exponent_1 > exponent_2) {
+                mantissa_1 *= Math.pow(10, exponent_diff);
+            } else {
+                mantissa_2 *= Math.pow(10, exponent_diff);
+            }
+
+            /* Compare */
+            binary_result = mantissa_1 <= mantissa_2 ? 1 : 0;
+
+            sp = PushOntoStack(
+                stack,
+                sp,
+                ConvertToStackItems(binary_result)
+            );
             break;
         default:
             throw new Error(i18next.t('core:modelUnknownOPR') + OperationType[e_op]);

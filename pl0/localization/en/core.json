@@ -15,6 +15,7 @@
     "modelINTStackLow": "Attempt to lower the stack pointer (SP) to -2",
     "modelINTStackFrameLow": "Attempt to lower the stack pointer (SP) below the current stack frame",
     "modelUnknownOPR": "Unknown OPR operation ",
+    "modelDivideByZero": "Division by zero",
 
     "explainerLIT": "Adds value %1 on top of the stack",
     "explainerINT": "Increments the stack pointer by %1",
