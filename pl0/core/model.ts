@@ -568,11 +568,25 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             }
             fractional_part = mantissa.substring(mantissa.length + exponent, mantissa.length);
 
-            params.model.sp = PushOntoStack(
-                stack,
-                params.model.sp,
-                ConvertToStackItems(whole_part, fractional_part)
-            );
+            if (fractional_part.length == 0) {
+                fractional_part = '0';
+            }
+
+            if (parameter == 0) {
+                params.model.sp = PushOntoStack(
+                    stack,
+                    params.model.sp,
+                    ConvertToStackItems(whole_part, fractional_part)
+                );
+            }
+            else if (parameter == 1) {
+                params.model.sp = PushOntoStack(
+                    stack,
+                    params.model.sp,
+                    ConvertToStackItems(whole_part)
+                );
+            }
+
             params.model.pc++;
             break;
         default:

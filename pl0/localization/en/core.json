@@ -93,6 +93,6 @@
     "validatorPld": "PLD has to have both level and parameter (A) 0",
     "validatorPst": "PST has to have both level and parameter (A) 0",
     "validatorItr": "ITR has to have both level and parameter (A) 0",
-    "validatorRti": "RTI has to have both level and parameter (A) 0",
+    "validatorRti": "RTI has to have level 0 and parameter (A) can only be either 0 or 1",
     "validatorOpfParam": "OPF has to have parameter (A) between 1 a 13"
 }

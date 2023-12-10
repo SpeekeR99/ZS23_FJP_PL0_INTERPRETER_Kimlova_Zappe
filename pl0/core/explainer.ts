@@ -29,7 +29,7 @@ export interface Placeholder {
     // What placeholder in message to replace
     placeholder: string;
     // Value to replace it with
-    value: number;
+    value: any;
 
     // Which values to highlight in stack
     stack: number[];
@@ -66,8 +66,8 @@ function GetValuesFromStack(
     index: number,
     count: number,
     decrementCurrentFrame: boolean = false
-): number[] {
-    let retvals: number[] = [];
+) {
+    let retvals = [];
     for (let i = 0; i < count; i++) {
         if (!CheckSPInBounds(index - i)) {
             throw new Error(i18next.t('core:modelStackNegativeError'));
@@ -90,7 +90,7 @@ function FindBaseDummy(stack: Stack, base: number, level: number): number[] {
     let newBase = base;
     let levels = [base];
     while (level > 0) {
-        newBase = stack.stackItems[newBase].value;
+        newBase = Number(stack.stackItems[newBase].value);
         level--;
         levels.push(newBase);
         if (newBase == 0 && level != 0) {
@@ -324,7 +324,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 value: stack.stackItems[params.model.base + 2].value,
                 heap: [],
                 stack: [params.model.base + 2],
-                instructions: [stack.stackItems[params.model.base + 2].value],
+                instructions: [Number(stack.stackItems[params.model.base + 2].value)],
                 level: false,
                 parameter: false,
                 output: false,
@@ -477,14 +477,14 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
 
             if (
-                stack.stackItems[params.model.sp].value < 0 ||
-                stack.stackItems[params.model.sp].value > 255
+                Number(stack.stackItems[params.model.sp].value) < 0 ||
+                Number(stack.stackItems[params.model.sp].value) > 255
             ) {
                 explanation.message = i18next.t('core:explainerWRIAsciiErr');
             } else {
                 explanation.message =
                     i18next.t('core:explainerWRI') +
-                    String.fromCharCode(stack.stackItems[params.model.sp].value);
+                    String.fromCharCode(Number(stack.stackItems[params.model.sp].value));
             }
             break;
         case InstructionType.REA:
@@ -500,7 +500,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
             break;
         case InstructionType.NEW:
-            var count = stack.stackItems[params.model.sp].value;
+            var count = Number(stack.stackItems[params.model.sp].value);
             explanation.placeholders.push({
                 placeholder: '1',
                 value: count,
@@ -541,7 +541,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
             break;
         case InstructionType.DEL:
-            var addr = stack.stackItems[params.model.sp].value;
+            var addr = Number(stack.stackItems[params.model.sp].value);
             let res = FreeDummy(heap, addr);
 
             if (res == -1) {
@@ -591,7 +591,7 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
 
             break;
         case InstructionType.LDA:
-            var addr = stack.stackItems[params.model.sp].value;
+            var addr = Number(stack.stackItems[params.model.sp].value);
             explanation.placeholders.push({
                 placeholder: '1',
                 value: addr,
@@ -627,8 +627,8 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
                 return explanation;
             }
 
-            var addr = stack.stackItems[params.model.sp - 1].value;
-            var val = stack.stackItems[params.model.sp].value;
+            var addr = Number(stack.stackItems[params.model.sp - 1].value);
+            var val = Number(stack.stackItems[params.model.sp].value);
             var temp = PutValueOnHeapDummy(heap, addr);
 
             if (temp == -2) {
@@ -676,17 +676,17 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             }
             break;
         case InstructionType.PLD:
-            var values: number[] = GetValuesFromStack(stack, params.model.sp, 2);
-            bases = FindBaseDummy(stack, params.model.base, values[1]);
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
+            bases = FindBaseDummy(stack, params.model.base, Number(values[1]));
             if (bases[0] == -1) {
                 explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
             }
 
-            if (bases[bases.length - 1] + values[0] > stack.stackItems.length - 1) {
+            if (bases[bases.length - 1] + Number(values[0]) > stack.stackItems.length - 1) {
                 tmp = 0;
             } else {
-                tmp = stack.stackItems[bases[bases.length - 1] + values[0]].value;
+                tmp = stack.stackItems[bases[bases.length - 1] + Number(values[0])].value;
             }
 
             explanation.message =
@@ -724,9 +724,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
             explanation.placeholders.push({
                 placeholder: '3',
-                value: bases[bases.length - 1] + values[0],
+                value: bases[bases.length - 1] + Number(values[0]),
                 heap: [],
-                stack: [bases[bases.length - 1] + values[0]],
+                stack: [bases[bases.length - 1] + Number(values[0])],
                 instructions: [],
                 level: false,
                 parameter: false,
@@ -736,8 +736,8 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
             break;
         case InstructionType.PST: // TODO PST
-            var values: number[] = GetValuesFromStack(stack, params.model.sp, 3);
-            bases = FindBaseDummy(stack, params.model.base, values[1]);
+            var values = GetValuesFromStack(stack, params.model.sp, 3);
+            bases = FindBaseDummy(stack, params.model.base, Number(values[1]));
             if (bases[0] == -1) {
                 explanation.message = i18next.t('core:explainerLevelTooHigh');
                 break;
@@ -786,9 +786,9 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
             explanation.placeholders.push({
                 placeholder: '4',
-                value: bases[bases.length - 1] + values[0],
+                value: bases[bases.length - 1] + Number(values[0]),
                 heap: [],
-                stack: [bases[bases.length - 1] + values[0]],
+                stack: [bases[bases.length - 1] + Number(values[0])],
                 instructions: [],
                 level: false,
                 parameter: false,

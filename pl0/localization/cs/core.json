@@ -92,6 +92,6 @@
     "validatorPld": "PLD musí mít level i parametr (A) 0",
     "validatorPst": "PST musí mít level i parametr (A) 0",
     "validatorItr": "ITR musí mít level i parametr (A) 0",
-    "validatorRti": "RTI musí mít level i parametr (A) 0",
+    "validatorRti": "RTI musí mít level 0 a parametr (A) může být pouze 0 nebo 1",
     "validatorOpfParam": "OPF musí mít parametr (A) mezi 1 a 13"
 }

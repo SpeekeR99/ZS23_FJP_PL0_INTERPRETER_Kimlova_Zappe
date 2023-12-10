@@ -346,7 +346,7 @@ export function ParseAndValidate(input: string): ValidationResult {
                 continue;
             }
         } else if (instruction.instruction == InstructionType.RTI) { /* Float to integer */
-            if (instruction.level != 0 || instruction.parameter != 0) {
+            if (instruction.level != 0 || instruction.parameter < 0 || instruction.parameter > 1) {
                 validationOK = false;
                 validationErrors.push({
                     rowIndex: i,
