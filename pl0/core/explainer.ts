@@ -798,13 +798,72 @@ export function ExplainInstruction(params: InstructionStepParameters): Explanati
             });
             break;
         case InstructionType.ITR:
-            /* TODO: explain ITR */
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
+
+            explanation.message = i18next.t('core:explainerITR');
+
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: values[1],
+                heap: [],
+                stack: [params.model.sp - 1],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: values[0],
+                heap: [],
+                stack: [params.model.sp],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
             break;
         case InstructionType.RTI:
-            /* TODO: explain RTI */
+            var values = GetValuesFromStack(stack, params.model.sp, 2);
+
+            if (parameter == 0) {
+                explanation.message = i18next.t('core:explainerRTI');
+            }
+            else if (parameter == 1) {
+                explanation.message = i18next.t('core:explainerRTI2');
+            }
+
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: values[1],
+                heap: [],
+                stack: [params.model.sp - 1],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: values[0],
+                heap: [],
+                stack: [params.model.sp],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
             break;
         case InstructionType.OPF:
-            /* TODO: explain OPF */
+            explanation = ExplainOPF(stack, parameter, params.model.sp);
             break;
         default:
             throw new Error(i18next.t('core:modelNonExistentInstructionError'));
@@ -1248,6 +1307,716 @@ function ExplainOPR(stack: Stack, operation: number, sp: number): Explanation {
             break;
         default:
             explanation.message = i18next.t('core:modelUnknownOPR');
+    }
+
+    return explanation;
+}
+
+function ExplainOPF(stack: Stack, operation: number, sp: number): Explanation {
+    let e_op = operation as OperationType;
+    let explanation: Explanation = { message: '', placeholders: [] };
+
+    if (sp < 0) {
+        explanation.message = i18next.t('core:modelStackNegativeError');
+        return explanation;
+    }
+
+    switch (e_op) {
+        case OperationType.U_MINUS:
+            explanation.message = i18next.t('core:explainerOPF1');
+
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            if (sp - 1 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.ADD:
+            explanation.message = i18next.t('core:explainerOPF2');
+
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.SUB:
+            explanation.message = i18next.t('core:explainerOPF3');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.MULT:
+            explanation.message = i18next.t('core:explainerOPF4');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.DIV:
+            explanation.message = i18next.t('core:explainerOPF5');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+            break;
+        case OperationType.MOD:
+            explanation.message = i18next.t('core:explainerOPF6');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+            break;
+        case OperationType.IS_ODD:
+            explanation.message = i18next.t('core:explainerOPF7');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            if (sp - 1 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.EQ:
+            explanation.message = i18next.t('core:explainerOPF8');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.N_EQ:
+            explanation.message = i18next.t('core:explainerOPF9');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.LESS_THAN:
+            explanation.message = i18next.t('core:explainerOPF10');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.MORE_EQ_THAN:
+            explanation.message = i18next.t('core:explainerOPF11');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.MORE_THAN:
+            explanation.message = i18next.t('core:explainerOPF12');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        case OperationType.LESS_EQ_THAN:
+            explanation.message = i18next.t('core:explainerOPF13');
+            explanation.placeholders.push({
+                placeholder: '1',
+                value: stack.stackItems[sp].value,
+                stack: [sp],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+
+            if (sp - 3 < 0) {
+                explanation.message = i18next.t('core:modelStackNegativeError');
+                explanation.placeholders = [];
+                return explanation;
+            }
+            explanation.placeholders.push({
+                placeholder: '2',
+                value: stack.stackItems[sp - 1].value,
+                stack: [sp - 1],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BOLD,
+            });
+            explanation.placeholders.push({
+                placeholder: '3',
+                value: stack.stackItems[sp - 2].value,
+                stack: [sp - 2],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            explanation.placeholders.push({
+                placeholder: '4',
+                value: stack.stackItems[sp - 3].value,
+                stack: [sp - 3],
+                heap: [],
+                instructions: [],
+                level: false,
+                parameter: false,
+                output: false,
+                input: false,
+                highlightType: HighlightType.BACKGROUND,
+            });
+            break;
+        default:
+            explanation.message = i18next.t('core:modelUnknownOPF');
     }
 
     return explanation;

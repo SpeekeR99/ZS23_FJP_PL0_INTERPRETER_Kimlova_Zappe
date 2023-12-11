@@ -544,6 +544,8 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             }
             mantissa = Number(mantissa);
 
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent, 6);
+
             params.model.sp = PushOntoStack(
                 stack,
                 params.model.sp,
@@ -559,14 +561,24 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
             exponent = Number(values[1]);
 
             /* Convert to whole and fractional part */
-            whole_part = mantissa.substring(0, mantissa.length + exponent);
-            if (whole_part.length == 0) {
-                whole_part = '0';
-                while (mantissa.length + exponent < 0) {
-                    mantissa = '0' + mantissa;
+            whole_part = "0";
+            fractional_part = "0";
+            if (exponent > 0) {
+                whole_part = mantissa.toString();
+                while (whole_part.length < exponent + 1) {
+                    whole_part =  whole_part + '0';
                 }
             }
-            fractional_part = mantissa.substring(mantissa.length + exponent, mantissa.length);
+            else {
+                whole_part = mantissa.substring(0, mantissa.length + exponent);
+                if (whole_part.length == 0) {
+                    whole_part = '0';
+                    while (mantissa.length + exponent < 0) {
+                        mantissa = '0' + mantissa;
+                    }
+                }
+                fractional_part = mantissa.substring(mantissa.length + exponent, mantissa.length);
+            }
 
             if (fractional_part.length == 0) {
                 fractional_part = '0';
@@ -745,6 +757,14 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
     return sp;
 }
 
+function RoundFloat(mantissa:string, exponent:number, decimals:number = 6): number[] {
+    var mantissa_orig_len = mantissa.length;
+    mantissa = mantissa.substring(0, decimals);
+    exponent += mantissa_orig_len - mantissa.length;
+
+    return [Number(mantissa), exponent];
+}
+
 function PerformOPF(stack: Stack, operation: number, sp: number): number {
     let e_op = operation as OperationType;
     let operands;
@@ -798,6 +818,8 @@ function PerformOPF(stack: Stack, operation: number, sp: number): number {
             /* Pick the "bigger" exponent in term of absolute value */
             exponent = Math.min(exponent_1, exponent_2);
 
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent);
+
             sp = PushOntoStack(
                 stack,
                 sp,
@@ -827,6 +849,8 @@ function PerformOPF(stack: Stack, operation: number, sp: number): number {
             /* Pick the "bigger" exponent in term of absolute value */
             exponent = Math.min(exponent_1, exponent_2);
 
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent);
+
             sp = PushOntoStack(
                 stack,
                 sp,
@@ -847,6 +871,8 @@ function PerformOPF(stack: Stack, operation: number, sp: number): number {
             mantissa = mantissa_1 * mantissa_2;
             /* Add exponents */
             exponent = exponent_1 + exponent_2;
+
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent);
 
             sp = PushOntoStack(
                 stack,
@@ -869,21 +895,29 @@ function PerformOPF(stack: Stack, operation: number, sp: number): number {
             }
 
             /* Divide mantissas */
-            mantissa = mantissa_1 / mantissa_2;
-            mantissa = mantissa.toString().split('.');
+            mantissa = (mantissa_1 / mantissa_2).toString();
+            /* Subtract exponents */
+            exponent = exponent_1 - exponent_2;
 
-            let whole_part = mantissa[0];
-            let fractional_part = mantissa[1];
-            if (fractional_part == undefined) {
-                fractional_part = '0';
+            /* Make mantissa an integer */
+            let dot_index = mantissa.indexOf('.');
+            if (dot_index == -1) {
+                dot_index = mantissa.length;
             }
 
-            /* Convert to mantissa and exponent in base 10 */
-            mantissa = Number(whole_part + fractional_part);
-            exponent = -1 * Number(fractional_part.length);
+            let whole_part = mantissa.substring(0, dot_index);
+            let fractional_part = mantissa.substring(dot_index + 1, mantissa.length);
 
-            /* Add exponents */
-            exponent += exponent_1 - exponent_2;
+            mantissa = whole_part + fractional_part;
+            let temp_exponent = -1 * fractional_part.length;
+
+            while (mantissa[mantissa.length - 1] == '0') {
+                mantissa = mantissa.substring(0, mantissa.length - 1);
+                temp_exponent++;
+            }
+            exponent += temp_exponent;
+
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent);
 
             sp = PushOntoStack(
                 stack,
@@ -912,8 +946,9 @@ function PerformOPF(stack: Stack, operation: number, sp: number): number {
 
             /* Modulo mantissas */
             mantissa = mantissa_1 % mantissa_2;
-            console.log(mantissa_1 + ' % ' + mantissa_2 + ' = ' + mantissa);
             exponent = Math.min(exponent_1, exponent_2);
+
+            [mantissa, exponent] = RoundFloat(mantissa.toString(), exponent);
 
             sp = PushOntoStack(
                 stack,
