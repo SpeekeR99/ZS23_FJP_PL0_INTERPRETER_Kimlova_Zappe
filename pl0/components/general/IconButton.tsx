@@ -16,6 +16,7 @@ type ButtonProps = {
     onClick: () => void;
     disabled?: boolean;
     className?: any;
+    id?: string;
 };
 export function IconButton(props: ButtonProps) {
     return (
@@ -31,6 +32,7 @@ export function IconButton(props: ButtonProps) {
             } ${props.className}`}
             onClick={props.onClick}
             disabled={props.disabled}
+            id={props.id}
         >
             <div>
                 <FontAwesomeIcon

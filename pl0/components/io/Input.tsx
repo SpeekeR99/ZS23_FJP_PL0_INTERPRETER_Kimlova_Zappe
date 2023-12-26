@@ -20,6 +20,7 @@ export function Input(props: InputProps) {
             type="text"
             value={props.inputTxt}
             onChange={handleChange}
+            id={"input-textarea"}
         />
     );
 }

@@ -132,6 +132,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                     text={t('ui:btnLoadInstructions')}
                     icon={faEdit}
                     style={ButtonStyle.STANDARD}
+                    id={'load-instructions-button'}
                 />
                 {props.pc !== null && (
                     <div>
@@ -160,6 +161,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                             value={textInstructions}
                             onChange={onChange}
                             className={styles.instructionsTextField}
+                            id={'instructions-textarea'}
                         />
 
                         <div>
@@ -176,6 +178,7 @@ export function InstructionsLoader(props: InstructionsLoaderProps) {
                         variant="primary"
                         disabled={!(parseOK && validationOK && instructions != null)}
                         onClick={onSave}
+                        id={'save-instructions-button'}
                     >
                         {t('ui:btnSave')}
                     </Button>

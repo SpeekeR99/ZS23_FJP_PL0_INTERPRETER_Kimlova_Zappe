@@ -420,7 +420,6 @@ export function DoStep(params: InstructionStepParameters): InstructionStepResult
                 params.model.output = params.model.output.replace("\\n", "\n");
             }
 
-            inputString = inputString.substring(1);
             params.model.sp--;
             params.model.pc++;
             break;
@@ -702,7 +701,7 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             sp = PushOntoStack(
                 stack,
                 sp,
-                ConvertToStackItems(operands[0] === operands[1] ? 1 : 0)
+                ConvertToStackItems(Number(operands[0]) == Number(operands[1]) ? 1 : 0)
             );
             break;
         case OperationType.N_EQ:
@@ -711,7 +710,7 @@ function PerformOPR(stack: Stack, operation: number, sp: number): number {
             sp = PushOntoStack(
                 stack,
                 sp,
-                ConvertToStackItems(operands[0] === operands[1] ? 0 : 1)
+                ConvertToStackItems(Number(operands[0]) == Number(operands[1]) ? 0 : 1)
             );
             break;
         case OperationType.LESS_THAN:

@@ -15,6 +15,7 @@ export function Output(props: InputProps) {
             value={props.outputTxt}
             onChange={() => {}}
             readOnly={true}
+            id={"output-textarea"}
         />
     );
 }

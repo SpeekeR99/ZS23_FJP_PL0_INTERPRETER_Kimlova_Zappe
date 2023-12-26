@@ -67,6 +67,7 @@ export function ControlPanel(props: ControlPanelProps) {
                     disabled={!props.models || !props.models.length}
                     text={t('ui:bntBack')}
                     icon={faStepBackward}
+                    id={'back-button'}
                 />
                 <IconButton
                     onClick={props.nextStep}
@@ -74,6 +75,7 @@ export function ControlPanel(props: ControlPanelProps) {
                     text={t('ui:btnForward')}
                     icon={faStepForward}
                     style={ButtonStyle.STANDARD}
+                    id={'forward-button'}
                 />
                 <IconButton
                     onClick={props.play}
@@ -81,6 +83,7 @@ export function ControlPanel(props: ControlPanelProps) {
                     text={t('ui:btnPlay')}
                     icon={faPlay}
                     style={ButtonStyle.STANDARD}
+                    id={'play-button'}
                 />
                 <IconButton
                     onClick={props.start}
@@ -88,6 +91,7 @@ export function ControlPanel(props: ControlPanelProps) {
                     text={t('ui:btnReset')}
                     icon={faRedo}
                     style={ButtonStyle.DANGER}
+                    id={'reset-button'}
                 />
             </div>
             {
